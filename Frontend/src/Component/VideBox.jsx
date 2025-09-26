@@ -7,7 +7,7 @@ const VideBox = ({
   secondaryButtonText = 'Learn More',
   onPrimaryClick = () => {},
   onSecondaryClick = () => {},
-  videoSrc = 'C:\Users\prave\Downloads\Corporate Event Videography _ Same Day Edit 1 _ Sugar & Tea Philippines _ Skyworth Global',
+  videoSrc = '"https://api.cloudinary.com/v1_1/dj5mkqv5q/video/upload"',
   poster = '',
 }) => {
   return (

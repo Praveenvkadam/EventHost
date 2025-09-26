@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Lottie from "lottie-react";
+import Uploading from "../../assets/Uploading to cloud.json";
+import ErrorAnimation from "../../assets/Error 404.json";
 
 const Gallary = () => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -9,10 +12,15 @@ const Gallary = () => {
   const [imageForm, setImageForm] = useState({ title: "", url: "", file: null });
 
   const [galleryItems, setGalleryItems] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null); // preview selected image
+  const [imagePreview, setImagePreview] = useState(null);
 
-  // Fetch gallery items
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch gallery
   const fetchGallery = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [imagesRes, videosRes] = await Promise.all([
         axios.get("http://localhost:8080/api/images"),
@@ -24,6 +32,9 @@ const Gallary = () => {
       ]);
     } catch (err) {
       console.error(err.response?.data || err.message);
+      setError("Failed to fetch gallery!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,26 +42,20 @@ const Gallary = () => {
     fetchGallery();
   }, []);
 
-  // Handle form changes
-  const handleVideoChange = (e) => setVideoForm({ ...videoForm, [e.target.name]: e.target.value });
-  const handleImageChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "file") {
-      setImageForm({ ...imageForm, file: files[0] });
-      setImagePreview(files[0] ? URL.createObjectURL(files[0]) : null);
-    } else {
-      setImageForm({ ...imageForm, [name]: value });
-      setImagePreview(value || null); // if URL entered
-    }
-  };
+  // Video form handlers
+  const handleVideoChange = (e) =>
+    setVideoForm({ ...videoForm, [e.target.name]: e.target.value });
 
-  // Submit video
   const handleVideoSubmit = async (e) => {
     e.preventDefault();
+    if (!videoForm.title || !videoForm.url) {
+      alert("Please fill both title and URL!");
+      return;
+    }
     try {
       await axios.post("http://localhost:8080/api/videos/add", {
         title: videoForm.title,
-        videoUrl: videoForm.url,
+        url: videoForm.url,
       });
       alert("Video added!");
       setVideoForm({ title: "", url: "" });
@@ -62,20 +67,29 @@ const Gallary = () => {
     }
   };
 
-  // Submit image
+  // Image form handlers
+  const handleImageChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "file") {
+      setImageForm({ ...imageForm, file: files[0] });
+      setImagePreview(files[0] ? URL.createObjectURL(files[0]) : null);
+    } else {
+      setImageForm({ ...imageForm, [name]: value });
+      setImagePreview(value || null);
+    }
+  };
+
   const handleImageSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("title", imageForm.title);
-
-    if (imageForm.file) {
-      formData.append("file", imageForm.file);
-    } else if (imageForm.url) {
-      formData.append("url", imageForm.url);
-    } else {
-      alert("Please provide image file or URL!");
+    if (!imageForm.title || (!imageForm.url && !imageForm.file)) {
+      alert("Please provide image title and URL or file!");
       return;
     }
+
+    const formData = new FormData();
+    formData.append("title", imageForm.title);
+    if (imageForm.file) formData.append("file", imageForm.file);
+    else formData.append("url", imageForm.url);
 
     try {
       await axios.post("http://localhost:8080/api/images/add", formData, {
@@ -112,7 +126,7 @@ const Gallary = () => {
         </button>
       </div>
 
-      {/* Popup Overlay */}
+      {/* Popup */}
       {(isVideoOpen || isImageOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="relative bg-white/20 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md text-gray-900 shadow-lg animate-fade-in">
@@ -137,7 +151,7 @@ const Gallary = () => {
                   placeholder="Video Title"
                   value={videoForm.title}
                   onChange={handleVideoChange}
-                  className="border rounded-lg p-3 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   required
                 />
                 <input
@@ -146,7 +160,7 @@ const Gallary = () => {
                   placeholder="Video URL"
                   value={videoForm.url}
                   onChange={handleVideoChange}
-                  className="border rounded-lg p-3 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   required
                 />
                 <button
@@ -168,7 +182,7 @@ const Gallary = () => {
                   placeholder="Image Title"
                   value={imageForm.title}
                   onChange={handleImageChange}
-                  className="border rounded-lg p-3 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
                   required
                 />
                 <input
@@ -177,7 +191,7 @@ const Gallary = () => {
                   placeholder="Image URL (optional if uploading file)"
                   value={imageForm.url}
                   onChange={handleImageChange}
-                  className="border rounded-lg p-3 bg-white/70 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
                 />
                 <input
                   type="file"
@@ -205,29 +219,44 @@ const Gallary = () => {
         </div>
       )}
 
+      {/* Loading/Error */}
+      {loading && (
+        <div className="flex justify-center items-center mt-10">
+          <Lottie animationData={Uploading} loop={true} className="w-64 h-64" />
+        </div>
+      )}
+      {error && (
+        <div className="flex flex-col justify-center items-center mt-10">
+          <Lottie animationData={ErrorAnimation} loop={true} className="w-64 h-64" />
+          <p className="text-red-600 mt-4 font-semibold">{error}</p>
+        </div>
+      )}
+
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {galleryItems.map((item, index) => (
-          <div
-            key={index}
-            className="border rounded-2xl overflow-hidden shadow-lg transform hover:scale-105 transition duration-300 bg-white"
-          >
-            <h4 className="font-semibold p-2 text-gray-800">{item.title}</h4>
-            {item.type === "image" ? (
-              <img
-                src={item.url || item.fileUrl}
-                alt={item.title}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <video controls className="w-full h-48 object-cover">
-                <source src={item.url || item.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            )}
-          </div>
-        ))}
-      </div>
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {galleryItems.map((item, index) => (
+            <div
+              key={index}
+              className="border rounded-2xl overflow-hidden shadow-lg transform hover:scale-105 transition duration-300 bg-white"
+            >
+              <h4 className="font-semibold p-2 text-gray-800">{item.title}</h4>
+              {item.type === "image" ? (
+                <img
+                  src={item.url || item.fileUrl}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <video controls className="w-full h-48 object-cover">
+                  <source src={item.url || item.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
