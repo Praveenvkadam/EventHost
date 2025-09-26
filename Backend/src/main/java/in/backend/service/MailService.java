@@ -16,7 +16,7 @@ public class MailService {
     public void sendPasswordReset(String toEmail, String token) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setFrom("aq199075@gmail.com"); // must match spring.mail.username
+        message.setFrom("aq199075@gmail.com"); // MUST match spring.mail.username
         message.setSubject("Password Reset Request");
         message.setText("Hello,\n\n"
                 + "To reset your password, click the link below:\n"

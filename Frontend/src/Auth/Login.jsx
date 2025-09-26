@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Lottie from "lottie-react"
+import loader from "../assets/Loading circles.json" 
+import WrongAnim from "../assets/404 not found.json" // Wrong password animation
 
 const Login = () => {
   const navigate = useNavigate()
@@ -7,6 +10,8 @@ const Login = () => {
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showErrorAnim, setShowErrorAnim] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -41,30 +46,60 @@ const Login = () => {
 
       const data = await response.json()
 
-      // Save JWT and username for Navbar / auth
+      // ✅ Save JWT + user info from backend
       localStorage.setItem('token', data.token)
-      localStorage.setItem('userName', data.name || 'User')
+      localStorage.setItem('userName', data.username)  // fixed
       localStorage.setItem('userId', data.id)
+      localStorage.setItem('email', data.email)
+      localStorage.setItem('phone', data.phone)
 
-      alert('Logged in successfully!')
-      setFormValues({ email: '', password: '' })
-      setErrors({})
-      if(data.id===1){
-        navigate('/admin')
-      }else{
-        navigate('/home')
-      }
-      // redirect to home or dashboard
+      // Loader before redirect
+      setIsLoading(true)
+      setTimeout(() => navigate('/'), 1500)
 
     } catch (err) {
+      setShowErrorAnim(true)
       alert(err.message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // Loader screen
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-md flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <Lottie animationData={loader} loop={true} className="w-40 h-40" />
+            <p className="mt-4 text-slate-700 font-medium">Redirecting to Home...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 p-4 relative overflow-y-auto">
+      {/* ❌ Wrong password modal */}
+      {showErrorAnim && (
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center max-w-sm relative">
+            {/* Close button */}
+            <button
+              onClick={() => setShowErrorAnim(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 font-bold text-xl"
+            >
+              ×
+            </button>
+
+            <h2 className="text-xl font-bold text-rose-600 mb-4">Wrong Password</h2>
+            <Lottie animationData={WrongAnim} loop={true} className="w-40 h-40" />
+            <p className="mt-2 text-slate-600">Please try again!</p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md">
         <div className="bg-white/90 backdrop-blur rounded-2xl shadow-xl border border-slate-200">
           <div className="px-6 pt-6 pb-2 text-center">
@@ -73,6 +108,7 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2 space-y-4">
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
               <input
@@ -87,6 +123,7 @@ const Login = () => {
               {errors.email && <p className="mt-1 text-sm text-rose-600">{errors.email}</p>}
             </div>
 
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">Password</label>
               <div className="relative">
@@ -110,6 +147,7 @@ const Login = () => {
               {errors.password && <p className="mt-1 text-sm text-rose-600">{errors.password}</p>}
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -118,8 +156,9 @@ const Login = () => {
               {isSubmitting ? 'Logging in…' : 'Log in'}
             </button>
 
+            {/* Links */}
             <p className="text-center text-sm text-slate-600">
-              Don't have an account? <Link to="/" className="text-sky-600 hover:underline">Sign up</Link>
+              Don't have an account? <Link to="/signup" className="text-sky-600 hover:underline">Sign up</Link>
             </p>
             <p className="text-center text-sm text-slate-600">
               <Link to="/forgot-password" className="text-sky-600 hover:underline">Forgot password?</Link>
