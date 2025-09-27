@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const Gallery = () => {
-  const [videos, setVideos] = useState([]);
   const [images, setImages] = useState([]);
-
-  const [videoForm, setVideoForm] = useState({ id: null, title: "", url: "", file: null });
-  const [imageForm, setImageForm] = useState({ id: null, title: "", url: "", file: null });
-
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [imageForm, setImageForm] = useState({
+    id: null,
+    title: "",
+    description: "",
+    date: "",
+    urls: ["", "", "", ""],
+  });
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  const [videoPreview, setVideoPreview] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-
-  // Fetch gallery from backend
+  // Fetch images from backend
   const fetchGallery = async () => {
     try {
-      const [videoRes, imageRes] = await Promise.all([
-        axios.get("http://localhost:8080/api/videos"),
-        axios.get("http://localhost:8080/api/images")
-      ]);
-      setVideos(videoRes.data);
-      setImages(imageRes.data);
+      const res = await axios.get("http://localhost:8080/api/images");
+      const mapped = res.data.map((img) => ({
+        ...img,
+        urls: [img.image1, img.image2, img.image3, img.image4],
+      }));
+      setImages(mapped);
     } catch (err) {
       console.error(err);
     }
@@ -32,139 +33,149 @@ const Gallery = () => {
     fetchGallery();
   }, []);
 
-  // Handle form input
-  const handleChange = (e, type) => {
-    const { name, value, files } = e.target;
-    if (type === "video") {
-      if (name === "file") {
-        setVideoForm({ ...videoForm, file: files[0] });
-        setVideoPreview(files[0] ? URL.createObjectURL(files[0]) : null);
-      } else {
-        setVideoForm({ ...videoForm, [name]: value });
-        setVideoPreview(value || null);
-      }
+  // Handle input change
+  const handleChange = (e, index = null) => {
+    const { name, value } = e.target;
+    if (name === "urls" && index !== null) {
+      const newUrls = [...imageForm.urls];
+      newUrls[index] = value;
+      setImageForm({ ...imageForm, urls: newUrls });
     } else {
-      if (name === "file") {
-        setImageForm({ ...imageForm, file: files[0] });
-        setImagePreview(files[0] ? URL.createObjectURL(files[0]) : null);
-      } else {
-        setImageForm({ ...imageForm, [name]: value });
-        setImagePreview(value || null);
-      }
+      setImageForm({ ...imageForm, [name]: value });
     }
   };
 
-  // Submit form (Add or Edit)
-  const handleSubmit = async (e, type) => {
+  // Submit form
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const form = type === "video" ? videoForm : imageForm;
+    if (!imageForm.title || imageForm.urls.some((u) => !u)) return;
 
-    if (!form.title || (!form.url && !form.file)) return;
-
-    const formData = new FormData();
-    formData.append("title", form.title);
-    if (form.file) formData.append("file", form.file);
-    else formData.append("url", form.url);
+    const payload = {
+      title: imageForm.title,
+      description: imageForm.description,
+      date: imageForm.date || new Date().toISOString().split("T")[0], // Ensure date is a string
+      image1: imageForm.urls[0],
+      image2: imageForm.urls[1],
+      image3: imageForm.urls[2],
+      image4: imageForm.urls[3],
+    };
 
     try {
-      if (form.id) {
-        // Edit existing
-        const url = type === "video"
-          ? `http://localhost:8080/api/videos/${form.id}`
-          : `http://localhost:8080/api/images/${form.id}`;
-        await axios.put(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      if (imageForm.id) {
+        await axios.put(
+          `http://localhost:8080/api/images/${imageForm.id}`,
+          payload
+        );
       } else {
-        // Add new
-        const url = type === "video"
-          ? "http://localhost:8080/api/videos/add"
-          : "http://localhost:8080/api/images/add";
-        await axios.post(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        await axios.post("http://localhost:8080/api/images", payload);
       }
 
-      // Reset form
-      if (type === "video") {
-        setVideoForm({ id: null, title: "", url: "", file: null });
-        setVideoPreview(null);
-        setIsVideoOpen(false);
-      } else {
-        setImageForm({ id: null, title: "", url: "", file: null });
-        setImagePreview(null);
-        setIsImageOpen(false);
-      }
-
+      setImageForm({ id: null, title: "", description: "", date: "", urls: ["", "", "", ""] });
+      setIsImageOpen(false);
       fetchGallery();
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Delete video/image
-  const handleDelete = async (id, type) => {
-    const url = type === "video"
-      ? `http://localhost:8080/api/videos/${id}`
-      : `http://localhost:8080/api/images/${id}`;
+  // Delete image
+  const handleDelete = async (id) => {
     try {
-      await axios.delete(url);
+      await axios.delete(`http://localhost:8080/api/images/${id}`);
       fetchGallery();
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Edit video/image
-  const handleEdit = (item, type) => {
-    if (type === "video") {
-      setVideoForm({ id: item.id, title: item.title, url: item.url, file: null });
-      setVideoPreview(item.url);
-      setIsVideoOpen(true);
-    } else {
-      setImageForm({ id: item.id, title: item.title, url: item.url, file: null });
-      setImagePreview(item.url);
-      setIsImageOpen(true);
-    }
+  // Edit image
+  const handleEdit = (item) => {
+    setImageForm({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      date: item.date,
+      urls: [item.image1, item.image2, item.image3, item.image4],
+    });
+    setIsImageOpen(true);
+  };
+
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: true,
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6">Gallery</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">Gallery</h2>
 
-      {/* Buttons */}
-      <div className="flex gap-4 mb-6">
-        <button onClick={() => { setIsVideoOpen(true); setVideoForm({ id: null, title: "", url: "", file: null }); setVideoPreview(null); }} className="px-6 py-2 bg-indigo-600 text-white rounded-lg">
-          Add Video
-        </button>
-        <button onClick={() => { setIsImageOpen(true); setImageForm({ id: null, title: "", url: "", file: null }); setImagePreview(null); }} className="px-6 py-2 bg-green-600 text-white rounded-lg">
+      <div className="flex justify-center mb-6">
+        <button
+          onClick={() => setIsImageOpen(true)}
+          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
           Add Image
         </button>
       </div>
 
-      {/* Video Modal */}
-      {isVideoOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl w-full max-w-md relative">
-            <button className="absolute top-3 right-3 text-xl font-bold" onClick={() => { setIsVideoOpen(false); setVideoPreview(null); setVideoForm({ id: null, title: "", url: "", file: null }); }}>&times;</button>
-            <form onSubmit={(e) => handleSubmit(e, "video")} className="flex flex-col gap-4">
-              <input type="text" name="title" placeholder="Video Title" value={videoForm.title} onChange={(e) => handleChange(e, "video")} className="border rounded-lg p-2" required />
-              <input type="text" name="url" placeholder="Video URL (optional)" value={videoForm.url} onChange={(e) => handleChange(e, "video")} className="border rounded-lg p-2" />
-              <input type="file" name="file" accept="video/*" onChange={(e) => handleChange(e, "video")} />
-              {videoPreview && <video controls className="w-full h-48 mt-2"><source src={videoPreview} type="video/mp4" /></video>}
-              <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg">{videoForm.id ? "Update" : "Submit"}</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Image Modal */}
+      {/* Modal */}
       {isImageOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl w-full max-w-md relative">
-            <button className="absolute top-3 right-3 text-xl font-bold" onClick={() => { setIsImageOpen(false); setImagePreview(null); setImageForm({ id: null, title: "", url: "", file: null }); }}>&times;</button>
-            <form onSubmit={(e) => handleSubmit(e, "image")} className="flex flex-col gap-4">
-              <input type="text" name="title" placeholder="Image Title" value={imageForm.title} onChange={(e) => handleChange(e, "image")} className="border rounded-lg p-2" required />
-              <input type="text" name="url" placeholder="Image URL (optional)" value={imageForm.url} onChange={(e) => handleChange(e, "image")} className="border rounded-lg p-2" />
-              <input type="file" name="file" accept="image/*" onChange={(e) => handleChange(e, "image")} />
-              {imagePreview && <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover mt-2 rounded-lg" />}
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">{imageForm.id ? "Update" : "Submit"}</button>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
+            <button
+              className="absolute top-3 right-3 text-xl font-bold"
+              onClick={() => setIsImageOpen(false)}
+            >
+              &times;
+            </button>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <input
+                type="text"
+                name="title"
+                placeholder="Title"
+                value={imageForm.title}
+                onChange={handleChange}
+                className="border rounded-lg p-2"
+                required
+              />
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={imageForm.description}
+                onChange={handleChange}
+                className="border rounded-lg p-2"
+              />
+              <input
+                type="date"
+                name="date"
+                value={imageForm.date}
+                onChange={handleChange}
+                className="border rounded-lg p-2"
+              />
+              {imageForm.urls.map((url, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  name="urls"
+                  placeholder={`Image URL ${index + 1}`}
+                  value={url}
+                  onChange={(e) => handleChange(e, index)}
+                  className="border rounded-lg p-2"
+                  required
+                />
+              ))}
+
+              <button
+                type="submit"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              >
+                {imageForm.id ? "Update" : "Submit"}
+              </button>
             </form>
           </div>
         </div>
@@ -172,26 +183,42 @@ const Gallery = () => {
 
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
-        {videos.map((v) => (
-          <div key={v.id}>
-            <h4 className="font-semibold">{v.title}</h4>
-            <video controls className="w-full h-48">
-              <source src={v.url} type="video/mp4" />
-            </video>
-            <div className="flex gap-2 mt-2">
-              <button onClick={() => handleEdit(v, "video")} className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
-              <button onClick={() => handleDelete(v.id, "video")} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
-            </div>
-          </div>
-        ))}
-
         {images.map((img) => (
-          <div key={img.id}>
-            <h4 className="font-semibold">{img.title}</h4>
-            <img src={img.url} alt={img.title} className="w-full h-48 object-cover" />
-            <div className="flex gap-2 mt-2">
-              <button onClick={() => handleEdit(img, "image")} className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
-              <button onClick={() => handleDelete(img.id, "image")} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+          <div
+            key={img.id}
+            className="rounded-xl overflow-hidden shadow-lg border border-white/30 bg-white/20 backdrop-blur-md transition hover:shadow-2xl"
+          >
+            <Slider {...sliderSettings}>
+              {img.urls.filter(Boolean).map((url, i) => (
+                <div key={i}>
+                  <img
+                    src={url}
+                    alt={`${img.title}-${i}`}
+                    className="w-full h-48 object-cover rounded-t-xl"
+                  />
+                </div>
+              ))}
+            </Slider>
+
+            <div className="p-4 bg-white/30 backdrop-blur-sm">
+              <h4 className="font-semibold text-lg text-gray-800">{img.title}</h4>
+              <p className="text-gray-700">{img.description}</p>
+              <p className="text-gray-500 text-sm mt-1">{img.date}</p>
+
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => handleEdit(img)}
+                  className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(img.id)}
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}

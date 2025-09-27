@@ -4,6 +4,9 @@ import in.backend.dto.AuthRequest;
 import in.backend.dto.AuthResponse;
 import in.backend.dto.PasswordResetRequest;
 import in.backend.dto.ResetPasswordDTO;
+import in.backend.entity.User;
+
+import java.util.List;
 
 public interface UserService {
 
@@ -15,8 +18,13 @@ public interface UserService {
 
     boolean resetPassword(ResetPasswordDTO resetPasswordDTO);
 
-    /**
-     * Get the currently logged-in user details from JWT token.
-     */
     AuthResponse getLoggedInUser(String token);
+
+    List<User> getAllUsers();
+
+    List<User> searchUsers(String query);
+
+    void deleteUser(Long id);
+
+    User getUserById(Long id);
 }

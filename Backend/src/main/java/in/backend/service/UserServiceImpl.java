@@ -9,13 +9,13 @@ import in.backend.exception.EmailAlreadyExistsException;
 import in.backend.exception.InvalidTokenException;
 import in.backend.exception.PasswordMismatchException;
 import in.backend.repository.UserRepository;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final MailService mailService;
-    private final JwtService jwtService; // ✅ add JwtService
+    private final JwtService jwtService;
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.mailService = mailService;
-        this.jwtService = jwtService; // ✅ inject JwtService
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -61,23 +61,19 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhone(),
-                null // no token on registration
+                null
         );
     }
 
     @Override
     public AuthResponse login(AuthRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 🔑 Generate JWT
         String token = jwtService.generateToken(user.getEmail());
 
         return new AuthResponse(
@@ -97,7 +93,6 @@ public class UserServiceImpl implements UserService {
             user.setResetToken(token);
             user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
-
             mailService.sendPasswordReset(user.getEmail(), token);
         });
     }
@@ -109,10 +104,9 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userRepository.findByResetToken(dto.getToken())
-                .orElseThrow(() -> new InvalidTokenException("Invalid or expired password reset token"));
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired token"));
 
-        if (user.getResetTokenExpiry() == null ||
-                user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new InvalidTokenException("Reset token has expired");
         }
 
@@ -126,8 +120,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse getLoggedInUser(String token) {
-        // 🔑 extract email from JWT
-        String email = jwtService.extractSubject(token);  // <-- use extractEmail instead of extractUsername
+        String email = jwtService.extractSubject(token);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -140,5 +133,31 @@ public class UserServiceImpl implements UserService {
                 user.getPhone(),
                 token
         );
+    }
+
+    // ---------------- User Management ----------------
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public List<User> searchUsers(String query) {
+        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 }

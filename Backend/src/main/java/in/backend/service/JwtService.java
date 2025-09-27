@@ -12,8 +12,8 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // ⚠️ Use a strong secret key (at least 32 chars)
-    private static final String SECRET_KEY = "your_super_secret_key_that_is_long_enough";
+    // ⚠️ Use environment variable or application.properties in production
+    private static final String SECRET_KEY = "your_super_secret_key_that_is_long_enough_32+chars";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
@@ -31,33 +31,39 @@ public class JwtService {
 
     // Extract subject (email/username) from JWT
     public String extractSubject(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (JwtException e) {
+            throw new RuntimeException("Invalid or expired JWT token");
+        }
     }
 
-    // ✅ Extract email from token (alias for extractSubject)
     public String extractEmail(String token) {
         return extractSubject(token);
     }
 
-    // Validate JWT token
+    // Validate token
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractSubject(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    // Check if token expired
     private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
-        return expiration.before(new Date());
+        try {
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+            return expiration.before(new Date());
+        } catch (JwtException e) {
+            return true;
+        }
     }
 }

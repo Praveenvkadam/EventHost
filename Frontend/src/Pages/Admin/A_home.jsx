@@ -2,9 +2,10 @@ import React from 'react'
 import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../../Component/Navbar'
 import Gallary from './Gallary'
+import Users from './Users'
 
 const Dashboard = () => <div className='p-6'>Dashboard Content</div>
-const Users = () => <div className='p-6'>Users Content</div>
+
 const Events = () => <div className='p-6'>Events Content</div>
 const Analytics = () => <div className='p-6'>Analytics Content</div>
 const Settings = () => <div className='p-6'>Settings Content</div>
