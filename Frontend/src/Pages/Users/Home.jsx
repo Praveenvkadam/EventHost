@@ -2,6 +2,11 @@ import React, { useEffect, useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../../Component/Navbar"
 import VideBox from "../../Component/VideBox"
+import Infocard from "../../Component/Infocard"
+import EXPERTISE from "../../Component/EXPERTISE"
+import WhatWeDo from "../../Component/WhatWeDo"
+import Clientele from "../../Component/CLIENTILE"
+import Footer from "../../Component/Footer"
 
 const Home = () => {
   const navigate = useNavigate()
@@ -37,6 +42,11 @@ const Home = () => {
     <div className="min-h-screen bg-gradient-to-br from-sky-100 to-sky-200">
       <Navbar />
       <VideBox />
+      <Infocard/>
+      <EXPERTISE/>
+      <WhatWeDo/>
+      <Clientele/>
+      <Footer/>
     </div>
   )
 }

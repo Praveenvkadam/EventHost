@@ -1,40 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Lottie from "lottie-react";
-import Uploading from "../../assets/Uploading to cloud.json";
-import ErrorAnimation from "../../assets/Error 404.json";
 
-const Gallary = () => {
+const Gallery = () => {
+  const [videos, setVideos] = useState([]);
+  const [images, setImages] = useState([]);
+
+  const [videoForm, setVideoForm] = useState({ id: null, title: "", url: "", file: null });
+  const [imageForm, setImageForm] = useState({ id: null, title: "", url: "", file: null });
+
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  const [videoForm, setVideoForm] = useState({ title: "", url: "" });
-  const [imageForm, setImageForm] = useState({ title: "", url: "", file: null });
-
-  const [galleryItems, setGalleryItems] = useState([]);
+  const [videoPreview, setVideoPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Fetch gallery
+  // Fetch gallery from backend
   const fetchGallery = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      const [imagesRes, videosRes] = await Promise.all([
-        axios.get("http://localhost:8080/api/images"),
+      const [videoRes, imageRes] = await Promise.all([
         axios.get("http://localhost:8080/api/videos"),
+        axios.get("http://localhost:8080/api/images")
       ]);
-      setGalleryItems([
-        ...imagesRes.data.map((item) => ({ ...item, type: "image" })),
-        ...videosRes.data.map((item) => ({ ...item, type: "video" })),
-      ]);
+      setVideos(videoRes.data);
+      setImages(imageRes.data);
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      setError("Failed to fetch gallery!");
-    } finally {
-      setLoading(false);
+      console.error(err);
     }
   };
 
@@ -42,223 +32,172 @@ const Gallary = () => {
     fetchGallery();
   }, []);
 
-  // Video form handlers
-  const handleVideoChange = (e) =>
-    setVideoForm({ ...videoForm, [e.target.name]: e.target.value });
-
-  const handleVideoSubmit = async (e) => {
-    e.preventDefault();
-    if (!videoForm.title || !videoForm.url) {
-      alert("Please fill both title and URL!");
-      return;
-    }
-    try {
-      await axios.post("http://localhost:8080/api/videos/add", {
-        title: videoForm.title,
-        url: videoForm.url,
-      });
-      alert("Video added!");
-      setVideoForm({ title: "", url: "" });
-      setIsVideoOpen(false);
-      fetchGallery();
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert("Error adding video!");
-    }
-  };
-
-  // Image form handlers
-  const handleImageChange = (e) => {
+  // Handle form input
+  const handleChange = (e, type) => {
     const { name, value, files } = e.target;
-    if (name === "file") {
-      setImageForm({ ...imageForm, file: files[0] });
-      setImagePreview(files[0] ? URL.createObjectURL(files[0]) : null);
+    if (type === "video") {
+      if (name === "file") {
+        setVideoForm({ ...videoForm, file: files[0] });
+        setVideoPreview(files[0] ? URL.createObjectURL(files[0]) : null);
+      } else {
+        setVideoForm({ ...videoForm, [name]: value });
+        setVideoPreview(value || null);
+      }
     } else {
-      setImageForm({ ...imageForm, [name]: value });
-      setImagePreview(value || null);
+      if (name === "file") {
+        setImageForm({ ...imageForm, file: files[0] });
+        setImagePreview(files[0] ? URL.createObjectURL(files[0]) : null);
+      } else {
+        setImageForm({ ...imageForm, [name]: value });
+        setImagePreview(value || null);
+      }
     }
   };
 
-  const handleImageSubmit = async (e) => {
+  // Submit form (Add or Edit)
+  const handleSubmit = async (e, type) => {
     e.preventDefault();
-    if (!imageForm.title || (!imageForm.url && !imageForm.file)) {
-      alert("Please provide image title and URL or file!");
-      return;
-    }
+    const form = type === "video" ? videoForm : imageForm;
+
+    if (!form.title || (!form.url && !form.file)) return;
 
     const formData = new FormData();
-    formData.append("title", imageForm.title);
-    if (imageForm.file) formData.append("file", imageForm.file);
-    else formData.append("url", imageForm.url);
+    formData.append("title", form.title);
+    if (form.file) formData.append("file", form.file);
+    else formData.append("url", form.url);
 
     try {
-      await axios.post("http://localhost:8080/api/images/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("Image added!");
-      setImageForm({ title: "", url: "", file: null });
-      setImagePreview(null);
-      setIsImageOpen(false);
+      if (form.id) {
+        // Edit existing
+        const url = type === "video"
+          ? `http://localhost:8080/api/videos/${form.id}`
+          : `http://localhost:8080/api/images/${form.id}`;
+        await axios.put(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      } else {
+        // Add new
+        const url = type === "video"
+          ? "http://localhost:8080/api/videos/add"
+          : "http://localhost:8080/api/images/add";
+        await axios.post(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      }
+
+      // Reset form
+      if (type === "video") {
+        setVideoForm({ id: null, title: "", url: "", file: null });
+        setVideoPreview(null);
+        setIsVideoOpen(false);
+      } else {
+        setImageForm({ id: null, title: "", url: "", file: null });
+        setImagePreview(null);
+        setIsImageOpen(false);
+      }
+
       fetchGallery();
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert("Error adding image!");
+      console.error(err);
+    }
+  };
+
+  // Delete video/image
+  const handleDelete = async (id, type) => {
+    const url = type === "video"
+      ? `http://localhost:8080/api/videos/${id}`
+      : `http://localhost:8080/api/images/${id}`;
+    try {
+      await axios.delete(url);
+      fetchGallery();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Edit video/image
+  const handleEdit = (item, type) => {
+    if (type === "video") {
+      setVideoForm({ id: item.id, title: item.title, url: item.url, file: null });
+      setVideoPreview(item.url);
+      setIsVideoOpen(true);
+    } else {
+      setImageForm({ id: item.id, title: item.title, url: item.url, file: null });
+      setImagePreview(item.url);
+      setIsImageOpen(true);
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Gallery</h2>
+      <h2 className="text-3xl font-bold mb-6">Gallery</h2>
 
       {/* Buttons */}
-      <div className="flex gap-4 mb-8">
-        <button
-          onClick={() => setIsVideoOpen(true)}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg hover:scale-105 transform transition duration-300"
-        >
+      <div className="flex gap-4 mb-6">
+        <button onClick={() => { setIsVideoOpen(true); setVideoForm({ id: null, title: "", url: "", file: null }); setVideoPreview(null); }} className="px-6 py-2 bg-indigo-600 text-white rounded-lg">
           Add Video
         </button>
-        <button
-          onClick={() => setIsImageOpen(true)}
-          className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl shadow-lg hover:scale-105 transform transition duration-300"
-        >
+        <button onClick={() => { setIsImageOpen(true); setImageForm({ id: null, title: "", url: "", file: null }); setImagePreview(null); }} className="px-6 py-2 bg-green-600 text-white rounded-lg">
           Add Image
         </button>
       </div>
 
-      {/* Popup */}
-      {(isVideoOpen || isImageOpen) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="relative bg-white/20 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md text-gray-900 shadow-lg animate-fade-in">
-            <button
-              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 font-bold text-2xl"
-              onClick={() => {
-                setIsVideoOpen(false);
-                setIsImageOpen(false);
-                setImagePreview(null);
-              }}
-            >
-              &times;
-            </button>
-
-            {/* Video Form */}
-            {isVideoOpen && (
-              <form onSubmit={handleVideoSubmit} className="flex flex-col gap-4">
-                <h3 className="text-2xl font-semibold mb-2">Add Video</h3>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Video Title"
-                  value={videoForm.title}
-                  onChange={handleVideoChange}
-                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  required
-                />
-                <input
-                  type="text"
-                  name="url"
-                  placeholder="Video URL"
-                  value={videoForm.url}
-                  onChange={handleVideoChange}
-                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                >
-                  Submit
-                </button>
-              </form>
-            )}
-
-            {/* Image Form */}
-            {isImageOpen && (
-              <form onSubmit={handleImageSubmit} className="flex flex-col gap-4">
-                <h3 className="text-2xl font-semibold mb-2">Add Image</h3>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Image Title"
-                  value={imageForm.title}
-                  onChange={handleImageChange}
-                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
-                  required
-                />
-                <input
-                  type="text"
-                  name="url"
-                  placeholder="Image URL (optional if uploading file)"
-                  value={imageForm.url}
-                  onChange={handleImageChange}
-                  className="border rounded-lg p-3 bg-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
-                />
-                <input
-                  type="file"
-                  name="file"
-                  onChange={handleImageChange}
-                  className="p-2 bg-white/70 rounded-lg"
-                  accept="image/*"
-                />
-                {imagePreview && (
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="mt-2 w-full h-48 object-cover rounded-lg border"
-                  />
-                )}
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                >
-                  Submit
-                </button>
-              </form>
-            )}
+      {/* Video Modal */}
+      {isVideoOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl w-full max-w-md relative">
+            <button className="absolute top-3 right-3 text-xl font-bold" onClick={() => { setIsVideoOpen(false); setVideoPreview(null); setVideoForm({ id: null, title: "", url: "", file: null }); }}>&times;</button>
+            <form onSubmit={(e) => handleSubmit(e, "video")} className="flex flex-col gap-4">
+              <input type="text" name="title" placeholder="Video Title" value={videoForm.title} onChange={(e) => handleChange(e, "video")} className="border rounded-lg p-2" required />
+              <input type="text" name="url" placeholder="Video URL (optional)" value={videoForm.url} onChange={(e) => handleChange(e, "video")} className="border rounded-lg p-2" />
+              <input type="file" name="file" accept="video/*" onChange={(e) => handleChange(e, "video")} />
+              {videoPreview && <video controls className="w-full h-48 mt-2"><source src={videoPreview} type="video/mp4" /></video>}
+              <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg">{videoForm.id ? "Update" : "Submit"}</button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Loading/Error */}
-      {loading && (
-        <div className="flex justify-center items-center mt-10">
-          <Lottie animationData={Uploading} loop={true} className="w-64 h-64" />
-        </div>
-      )}
-      {error && (
-        <div className="flex flex-col justify-center items-center mt-10">
-          <Lottie animationData={ErrorAnimation} loop={true} className="w-64 h-64" />
-          <p className="text-red-600 mt-4 font-semibold">{error}</p>
+      {/* Image Modal */}
+      {isImageOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white/20 backdrop-blur-lg p-6 rounded-xl w-full max-w-md relative">
+            <button className="absolute top-3 right-3 text-xl font-bold" onClick={() => { setIsImageOpen(false); setImagePreview(null); setImageForm({ id: null, title: "", url: "", file: null }); }}>&times;</button>
+            <form onSubmit={(e) => handleSubmit(e, "image")} className="flex flex-col gap-4">
+              <input type="text" name="title" placeholder="Image Title" value={imageForm.title} onChange={(e) => handleChange(e, "image")} className="border rounded-lg p-2" required />
+              <input type="text" name="url" placeholder="Image URL (optional)" value={imageForm.url} onChange={(e) => handleChange(e, "image")} className="border rounded-lg p-2" />
+              <input type="file" name="file" accept="image/*" onChange={(e) => handleChange(e, "image")} />
+              {imagePreview && <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover mt-2 rounded-lg" />}
+              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg">{imageForm.id ? "Update" : "Submit"}</button>
+            </form>
+          </div>
         </div>
       )}
 
       {/* Gallery Grid */}
-      {!loading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {galleryItems.map((item, index) => (
-            <div
-              key={index}
-              className="border rounded-2xl overflow-hidden shadow-lg transform hover:scale-105 transition duration-300 bg-white"
-            >
-              <h4 className="font-semibold p-2 text-gray-800">{item.title}</h4>
-              {item.type === "image" ? (
-                <img
-                  src={item.url || item.fileUrl}
-                  alt={item.title}
-                  className="w-full h-48 object-cover"
-                />
-              ) : (
-                <video controls className="w-full h-48 object-cover">
-                  <source src={item.url || item.videoUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+        {videos.map((v) => (
+          <div key={v.id}>
+            <h4 className="font-semibold">{v.title}</h4>
+            <video controls className="w-full h-48">
+              <source src={v.url} type="video/mp4" />
+            </video>
+            <div className="flex gap-2 mt-2">
+              <button onClick={() => handleEdit(v, "video")} className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
+              <button onClick={() => handleDelete(v.id, "video")} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+
+        {images.map((img) => (
+          <div key={img.id}>
+            <h4 className="font-semibold">{img.title}</h4>
+            <img src={img.url} alt={img.title} className="w-full h-48 object-cover" />
+            <div className="flex gap-2 mt-2">
+              <button onClick={() => handleEdit(img, "image")} className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
+              <button onClick={() => handleDelete(img.id, "image")} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default Gallary;
+export default Gallery;

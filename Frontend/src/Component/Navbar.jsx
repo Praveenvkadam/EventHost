@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { FaUserCircle } from "react-icons/fa"
+import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa"
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [userName, setUserName] = useState(null)
   const [userId, setUserId] = useState(null)
+  const [showNavbar, setShowNavbar] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -20,112 +23,217 @@ const Navbar = () => {
     navigate("/login")
   }
 
-  return (
-    <nav className="bg-gradient-to-r from-sky-500 to-indigo-600 shadow-lg fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-3xl font-bold text-white hover:text-yellow-300 transition-colors"
-        >
-          MyApp
-        </Link>
+  // Scroll listener for hiding/showing navbar
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (window.scrollY > lastScrollY) {
+        setShowNavbar(false) // hide on scroll down
+      } else {
+        setShowNavbar(true) // show on scroll up
+      }
+      setLastScrollY(window.scrollY)
+    }
 
-        {/* Main menu */}
-        <div className="hidden md:flex gap-6 items-center text-white font-medium">
-          <Link to="/" className="hover:text-yellow-300 transition-colors">
+    window.addEventListener("scroll", controlNavbar)
+    return () => {
+      window.removeEventListener("scroll", controlNavbar)
+    }
+  }, [lastScrollY])
+
+  return (
+    <>
+      {/* Navbar */}
+      <nav
+        className={`bg-gradient-to-r from-sky-500 to-indigo-600 shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+          showNavbar ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="text-3xl font-bold text-white hover:text-yellow-300 transition-colors"
+          >
+            MyApp
+          </Link>
+
+          {/* Desktop Menu */}
+          <div className="hidden md:flex gap-6 items-center text-white font-medium">
+            <Link to="/" className="hover:text-yellow-300 transition-colors">
+              Home
+            </Link>
+            <Link to="/about" className="hover:text-yellow-300 transition-colors">
+              About
+            </Link>
+            <Link to="/services" className="hover:text-yellow-300 transition-colors">
+              Services
+            </Link>
+            <Link to="/contact" className="hover:text-yellow-300 transition-colors">
+              Contact
+            </Link>
+            {userId === 1 && (
+              <Link to="/admin/*" className="hover:text-yellow-300 transition-colors">
+                Dashboard
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-white text-2xl"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <FaBars />
+          </button>
+
+          {/* User Section for Desktop */}
+          <div className="hidden md:block relative">
+            {userName ? (
+              <>
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-2 rounded-xl hover:bg-white/30 transition-colors"
+                >
+                  <FaUserCircle className="text-2xl text-white" />
+                  <span className="text-white font-medium">{userName}</span>
+                </button>
+
+                {isOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden">
+                    <ul className="text-gray-800 text-sm">
+                      <li>
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
+                        >
+                          Profile
+                        </Link>
+                      </li>
+                      {userId === 1 && (
+                        <li>
+                          <Link
+                            to="/dashboard"
+                            className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
+                          >
+                            Dashboard
+                          </Link>
+                        </li>
+                      )}
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 hover:bg-indigo-100 transition-colors"
+                        >
+                          Logout
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex gap-4">
+                <Link
+                  to="/login"
+                  className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 hover:text-white transition-all"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 hover:text-white transition-all"
+                >
+                  Signup
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Sidebar (Mobile) */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Close Button */}
+        <button
+          className="absolute top-4 right-4 text-gray-600 text-2xl"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <FaTimes />
+        </button>
+
+        <div className="mt-16 flex flex-col gap-6 px-6 text-gray-800 font-medium">
+          {/* Show user name if logged in */}
+          {userName && (
+            <div className="flex items-center gap-2 mb-4">
+              <FaUserCircle className="text-2xl text-gray-700" />
+              <span className="font-semibold">{userName}</span>
+            </div>
+          )}
+
+          {/* Links */}
+          <Link to="/" onClick={() => setSidebarOpen(false)}>
             Home
           </Link>
-          <Link to="/about" className="hover:text-yellow-300 transition-colors">
+          <Link to="/about" onClick={() => setSidebarOpen(false)}>
             About
           </Link>
-          <Link
-            to="/services"
-            className="hover:text-yellow-300 transition-colors"
-          >
+          <Link to="/services" onClick={() => setSidebarOpen(false)}>
             Services
           </Link>
-          <Link
-            to="/contact"
-            className="hover:text-yellow-300 transition-colors"
-          >
+          <Link to="/contact" onClick={() => setSidebarOpen(false)}>
             Contact
           </Link>
+
+          {/* Admin Dashboard link */}
           {userId === 1 && (
-            <Link
-              to="/admin/*"
-              className="hover:text-yellow-300 transition-colors"
-            >
+            <Link to="/admin/*" onClick={() => setSidebarOpen(false)}>
               Dashboard
             </Link>
           )}
-        </div>
 
-        {/* User section */}
-        <div className="relative">
+          <hr />
+
+          {/* Login/Signup or Profile/Logout */}
           {userName ? (
             <>
+              <Link to="/profile" onClick={() => setSidebarOpen(false)}>
+                Profile
+              </Link>
               <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-2 rounded-xl hover:bg-white/30 transition-colors"
+                onClick={() => {
+                  handleLogout()
+                  setSidebarOpen(false)
+                }}
+                className="text-left"
               >
-                <FaUserCircle className="text-2xl text-white" />
-                <span className="text-white font-medium">{userName}</span>
+                Logout
               </button>
-
-              {/* Dropdown Menu */}
-              {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden">
-                  <ul className="text-gray-800 text-sm">
-                    <li>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
-                      >
-                        Profile
-                      </Link>
-                    </li>
-                    {userId === 1 && (
-                      <li>
-                        <Link
-                          to="/dashboard"
-                          className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
-                        >
-                          Dashboard
-                        </Link>
-                      </li>
-                    )}
-                    <li>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 hover:bg-indigo-100 transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              )}
             </>
           ) : (
-            <div className="flex gap-4">
-              <Link
-                to="/login"
-                className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 hover:text-white transition-all"
-              >
+            <>
+              <Link to="/login" onClick={() => setSidebarOpen(false)}>
                 Login
               </Link>
-              <Link
-                to="/signup"
-                className="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 hover:text-white transition-all"
-              >
+              <Link to="/signup" onClick={() => setSidebarOpen(false)}>
                 Signup
               </Link>
-            </div>
+            </>
           )}
         </div>
       </div>
-    </nav>
+
+      {/* Overlay when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+    </>
   )
 }
 
