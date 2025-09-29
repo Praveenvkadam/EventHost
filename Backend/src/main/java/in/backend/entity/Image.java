@@ -1,14 +1,16 @@
 package in.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Image {
 
     @Id
@@ -17,7 +19,9 @@ public class Image {
 
     private String title;
     private String description;
-    private LocalDate date; // ✅ LocalDate instead of String
+
+    @JsonFormat(pattern = "yyyy-MM-dd")  // ✅ Always return YYYY-MM-DD
+    private LocalDate date;
 
     private String image1;
     private String image2;

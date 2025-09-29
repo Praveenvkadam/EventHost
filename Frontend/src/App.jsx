@@ -6,6 +6,9 @@ import Forgetpwd from './Auth/Forgetpwd'
 import Home from './Pages/Users/Home'
 import ResetPassword from './Auth/ResetPassword'
 import A_Home from './Pages/Admin/A_Home'
+import GallaryPage from './Pages/Users/GallaryPage'
+import AboutUS from './Pages/Users/AboutUS'
+import Service from './Pages/Users/Service'
 
 
 const App = () => {
@@ -22,6 +25,9 @@ const App = () => {
           {/* User Home */}
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
+          <Route path='/gallaryPage' element={<GallaryPage/>}/>
+          <Route path='/about' element={<AboutUS/>}/>
+          <Route path='/services' element={<Service/>}/>
 
           {/* Admin Panel */}
           <Route path="/admin/*" element={<A_Home />} />

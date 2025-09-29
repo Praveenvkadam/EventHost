@@ -10,12 +10,12 @@ const Gallery = () => {
     id: null,
     title: "",
     description: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0], // ✅ default today
     urls: ["", "", "", ""],
   });
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  // Fetch images from backend
+  // Fetch images
   const fetchGallery = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/images");
@@ -25,7 +25,7 @@ const Gallery = () => {
       }));
       setImages(mapped);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching gallery:", err);
     }
   };
 
@@ -33,7 +33,7 @@ const Gallery = () => {
     fetchGallery();
   }, []);
 
-  // Handle input change
+  // Handle form input
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
     if (name === "urls" && index !== null) {
@@ -53,11 +53,8 @@ const Gallery = () => {
     const payload = {
       title: imageForm.title,
       description: imageForm.description,
-      date: imageForm.date || new Date().toISOString().split("T")[0], // Ensure date is a string
-      image1: imageForm.urls[0],
-      image2: imageForm.urls[1],
-      image3: imageForm.urls[2],
-      image4: imageForm.urls[3],
+      date: imageForm.date || new Date().toISOString().split("T")[0],
+      urls: imageForm.urls, // ✅ correct for backend
     };
 
     try {
@@ -70,11 +67,17 @@ const Gallery = () => {
         await axios.post("http://localhost:8080/api/images", payload);
       }
 
-      setImageForm({ id: null, title: "", description: "", date: "", urls: ["", "", "", ""] });
+      setImageForm({
+        id: null,
+        title: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0], // reset to today
+        urls: ["", "", "", ""],
+      });
       setIsImageOpen(false);
       fetchGallery();
     } catch (err) {
-      console.error(err);
+      console.error("Error saving image:", err);
     }
   };
 
@@ -84,7 +87,7 @@ const Gallery = () => {
       await axios.delete(`http://localhost:8080/api/images/${id}`);
       fetchGallery();
     } catch (err) {
-      console.error(err);
+      console.error("Error deleting image:", err);
     }
   };
 
@@ -100,6 +103,7 @@ const Gallery = () => {
     setIsImageOpen(true);
   };
 
+  // Slider settings
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -107,12 +111,16 @@ const Gallery = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
+    autoplay: true,
+    autoplaySpeed: 2000,
+    pauseOnHover: true,
   };
 
   return (
     <div className="p-6">
       <h2 className="text-3xl font-bold mb-6 text-center">Gallery</h2>
 
+      {/* Add Image Button */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setIsImageOpen(true)}

@@ -8,6 +8,6 @@ import java.util.List;
 public class ImageRequestd {
     private String title;
     private String description;
-    private LocalDate date; // ✅ LocalDate
+    private LocalDate date; //  LocalDate (Spring auto-parses YYYY-MM-DD)
     private List<String> urls; // exactly 4 URLs
 }

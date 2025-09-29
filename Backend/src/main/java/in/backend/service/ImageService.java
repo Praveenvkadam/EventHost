@@ -1,14 +1,14 @@
 package in.backend.service;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
 
 import in.backend.dto.ImageRequestd;
 import in.backend.entity.Image;
 import in.backend.repository.ImageRepository;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ImageService {
@@ -39,7 +39,7 @@ public class ImageService {
         Image image = Image.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .date(request.getDate() != null ? request.getDate() : LocalDate.now()) // ✅ LocalDate
+                .date(request.getDate() != null ? request.getDate() : LocalDate.now()) // ✅
                 .image1(urls.get(0))
                 .image2(urls.get(1))
                 .image3(urls.get(2))
@@ -61,7 +61,7 @@ public class ImageService {
 
         image.setTitle(request.getTitle());
         image.setDescription(request.getDescription());
-        image.setDate(request.getDate() != null ? request.getDate() : LocalDate.now()); // ✅ LocalDate
+        image.setDate(request.getDate() != null ? request.getDate() : LocalDate.now()); // ✅
         image.setImage1(urls.get(0));
         image.setImage2(urls.get(1));
         image.setImage3(urls.get(2));

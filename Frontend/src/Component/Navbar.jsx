@@ -68,8 +68,8 @@ const Navbar = () => {
             <Link to="/services" className="hover:text-yellow-300 transition-colors">
               Services
             </Link>
-            <Link to="/contact" className="hover:text-yellow-300 transition-colors">
-              Contact
+            <Link to="/gallaryPage" className="hover:text-yellow-300 transition-colors">
+            Gallary
             </Link>
             {userId === 1 && (
               <Link to="/admin/*" className="hover:text-yellow-300 transition-colors">
@@ -184,8 +184,8 @@ const Navbar = () => {
           <Link to="/services" onClick={() => setSidebarOpen(false)}>
             Services
           </Link>
-          <Link to="/contact" onClick={() => setSidebarOpen(false)}>
-            Contact
+          <Link to="/gallaryPage" onClick={() => setSidebarOpen(false)}>
+           Gallary
           </Link>
 
           {/* Admin Dashboard link */}
