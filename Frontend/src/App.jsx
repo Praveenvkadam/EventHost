@@ -9,6 +9,9 @@ import A_Home from './Pages/Admin/A_Home'
 import GallaryPage from './Pages/Users/GallaryPage'
 import AboutUS from './Pages/Users/AboutUS'
 import Service from './Pages/Users/Service'
+import Booking from './Component/Booking'
+import FinalSubmit from './Component/FinalSubmit'
+
 
 
 const App = () => {
@@ -28,6 +31,9 @@ const App = () => {
           <Route path='/gallaryPage' element={<GallaryPage/>}/>
           <Route path='/about' element={<AboutUS/>}/>
           <Route path='/services' element={<Service/>}/>
+          <Route path='/booking' element={<Booking/>}/>
+          <Route path='/final-submit' element={<FinalSubmit/>}/>
+          
 
           {/* Admin Panel */}
           <Route path="/admin/*" element={<A_Home />} />

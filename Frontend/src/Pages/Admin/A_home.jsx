@@ -3,8 +3,162 @@ import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../../Component/Navbar'
 import Gallary from './Gallary'
 import Users from './Users'
+import AddPackage from './AddPackage'
+import { Users as UsersIcon, CalendarClock, IndianRupee, TrendingUp } from 'lucide-react'
+import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend
+} from 'chart.js'
 
-const Dashboard = () => <div className='p-6'>Dashboard Content</div>
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend
+)
+
+const Dashboard = () => {
+  const kpis = [
+    {
+      title: 'Total Users',
+      value: '12,480',
+      delta: '+4.2% MoM',
+      icon: <UsersIcon className='h-6 w-6 text-sky-600' />,
+      bg: 'from-sky-50 to-white'
+    },
+    {
+      title: 'Upcoming Events',
+      value: '86',
+      delta: '+12 scheduled',
+      icon: <CalendarClock className='h-6 w-6 text-indigo-600' />,
+      bg: 'from-indigo-50 to-white'
+    },
+    {
+      title: 'Revenue (MTD)',
+      value: '₹ 8.7L',
+      delta: '+7.9% MoM',
+      icon: <IndianRupee className='h-6 w-6 text-emerald-600' />,
+      bg: 'from-emerald-50 to-white'
+    },
+    {
+      title: 'Conversion Rate',
+      value: '3.14%',
+      delta: '+0.3pp',
+      icon: <TrendingUp className='h-6 w-6 text-amber-600' />,
+      bg: 'from-amber-50 to-white'
+    }
+  ]
+
+  const lineData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    datasets: [
+      {
+        label: 'Bookings',
+        data: [120, 150, 180, 160, 210, 240, 260],
+        borderColor: 'rgb(2, 132, 199)',
+        backgroundColor: 'rgba(2, 132, 199, 0.2)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 3
+      }
+    ]
+  }
+
+  const barData = {
+    labels: ['Wedding', 'Corporate', 'Birthday', 'Festival'],
+    datasets: [
+      {
+        label: 'Revenue (₹ in thousands)',
+        data: [560, 420, 260, 310],
+        backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#f59e0b']
+      }
+    ]
+  }
+
+  const doughnutData = {
+    labels: ['Confirmed', 'Pending', 'Cancelled'],
+    datasets: [
+      {
+        data: [62, 28, 10],
+        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+        borderWidth: 1
+      }
+    ]
+  }
+
+  const commonOptions = {
+    plugins: {
+      legend: { display: true, position: 'bottom' },
+      tooltip: { enabled: true }
+    },
+    maintainAspectRatio: false
+  }
+
+  return (
+    <div className='p-6 space-y-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'>
+        {kpis.map((kpi) => (
+          <div key={kpi.title} className={`rounded-xl border border-gray-200 bg-gradient-to-br ${kpi.bg} p-5 shadow-sm`}>
+            <div className='flex items-center justify-between'>
+              <div>
+                <div className='text-sm font-medium text-gray-500'>{kpi.title}</div>
+                <div className='mt-1 text-2xl font-bold text-gray-800'>{kpi.value}</div>
+                <div className='mt-1 text-xs font-semibold text-emerald-600'>{kpi.delta}</div>
+              </div>
+              <div className='rounded-full bg-white p-3 shadow-inner'>
+                {kpi.icon}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className='grid grid-cols-1 xl:grid-cols-3 gap-6'>
+        <div className='xl:col-span-2 rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <div className='mb-3 flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-800'>Monthly Bookings</h3>
+            <span className='text-xs text-gray-500'>Last 7 months</span>
+          </div>
+          <div className='h-72'>
+            <Line data={lineData} options={commonOptions} />
+          </div>
+        </div>
+
+        <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+          <div className='mb-3 flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-800'>Booking Status</h3>
+            <span className='text-xs text-gray-500'>This month</span>
+          </div>
+          <div className='h-72'>
+            <Doughnut data={doughnutData} options={commonOptions} />
+          </div>
+        </div>
+      </div>
+
+      <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+        <div className='mb-3 flex items-center justify-between'>
+          <h3 className='text-lg font-semibold text-gray-800'>Revenue by Category</h3>
+          <span className='text-xs text-gray-500'>Year to date</span>
+        </div>
+        <div className='h-80'>
+          <Bar data={barData} options={commonOptions} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const Events = () => <div className='p-6'>Events Content</div>
 const Analytics = () => <div className='p-6'>Analytics Content</div>
@@ -53,7 +207,7 @@ const A_Home = () => {
                 to="/admin/events"
                 className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/events')}`}
               >
-                Events
+                Add Packages
               </Link>
             </li>
             <li>
@@ -103,7 +257,7 @@ const A_Home = () => {
         <Routes>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<Users />} />
-          <Route path="events" element={<Events />} />
+          <Route path="events" element={<AddPackage />} />
           <Route path="gallery" element={<Gallary />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />

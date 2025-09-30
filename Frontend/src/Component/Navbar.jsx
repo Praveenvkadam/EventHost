@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa"
+import { FaUserCircle, FaBars, FaTimes, FaShoppingCart } from "react-icons/fa"
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -9,6 +9,7 @@ const Navbar = () => {
   const [showNavbar, setShowNavbar] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [requestedCount, setRequestedCount] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -16,6 +17,19 @@ const Navbar = () => {
     const id = localStorage.getItem("userId")
     if (name) setUserName(name)
     if (id) setUserId(Number(id))
+    const rc = Number(localStorage.getItem('requestedCount') || 0)
+    setRequestedCount(isNaN(rc) ? 0 : rc)
+  }, [])
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'requestedCount') {
+        const rc = Number(e.newValue || 0)
+        setRequestedCount(isNaN(rc) ? 0 : rc)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   const handleLogout = () => {
@@ -86,8 +100,21 @@ const Navbar = () => {
             <FaBars />
           </button>
 
-          {/* User Section for Desktop */}
-          <div className="hidden md:block relative">
+          {/* Right Section for Desktop: Cart + User */}
+          <div className="hidden md:flex items-center gap-4 relative">
+            {/* Cart */}
+            <button
+              onClick={() => navigate('/final-submit')}
+              className="relative rounded-xl bg-white/20 backdrop-blur-md p-2 text-white hover:bg-white/30 transition-colors"
+              aria-label="Requested events"
+              title="Requested events"
+            >
+              <FaShoppingCart className="text-2xl" />
+              <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-yellow-400 text-indigo-900 text-xs font-bold flex items-center justify-center">
+                {requestedCount}
+              </span>
+            </button>
+
             {userName ? (
               <>
                 <button
