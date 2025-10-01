@@ -1,5 +1,6 @@
 package in.backend.entity;
 
+import in.backend.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,7 +28,10 @@ public class Booking {
     @Column(length = 2000)
     private String notes;
 
-    private String status = "pending"; // ✅ default status
+    // Enum instead of String for status
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status = PaymentStatus.PENDING;
 
     // Link to the booked service/event
     @ManyToOne

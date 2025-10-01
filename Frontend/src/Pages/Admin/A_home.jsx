@@ -4,6 +4,7 @@ import Navbar from '../../Component/Navbar'
 import Gallary from './Gallary'
 import Users from './Users'
 import AddPackage from './AddPackage'
+import Orders from './Orders'
 import { Users as UsersIcon, CalendarClock, IndianRupee, TrendingUp } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import {
@@ -220,10 +221,10 @@ const A_Home = () => {
             </li>
             <li>
               <Link
-                to="/admin/analytics"
+                to="/admin/orders"
                 className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/analytics')}`}
               >
-                Analytics
+                Orders
               </Link>
             </li>
             <li>
@@ -261,6 +262,7 @@ const A_Home = () => {
           <Route path="gallery" element={<Gallary />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="orders" element={<Orders />} />
         </Routes>
       </main>
     </div>

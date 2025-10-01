@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -22,19 +23,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
+    // Public endpoints – do not require JWT
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/api/auth",
+            "/api/password",
+            "/api/images",
+            "/api/services",
+            "/api/bookings",
+            "/api/payment",
+            "/api/admin/orders" 
+    );
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-
-        // ----------------------------
-        // APIs that do NOT require JWT
-        // ----------------------------
-        return path.startsWith("/api/auth") ||
-               path.startsWith("/api/password") ||
-               path.startsWith("/api/images") ||
-               path.startsWith("/api/services") ||
-               path.startsWith("/api/bookings") ||
-               path.startsWith("/api/payment"); // <--- Make this public. Remove if you want JWT protection
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 
     @Override
@@ -59,14 +62,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Invalid or expired JWT token\"}");
+                        return;
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"Invalid or expired JWT token\"}");
-                return; // Stop the filter chain
+                response.getWriter().write("{\"error\":\"Invalid or expired JWT token\"}");
+                return;
             }
         }
 

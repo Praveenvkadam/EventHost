@@ -2,6 +2,7 @@ package in.backend.dto;
 
 import in.backend.entity.Booking;
 import in.backend.entity.Service;
+import in.backend.enums.PaymentStatus;
 import lombok.Data;
 
 @Data
@@ -16,7 +17,7 @@ public class BookingDTO {
     private String venue;
     private String address;
     private String notes;
-    private String status;
+    private String status; // keep as String for API response
 
     // Service details
     private Long serviceId;
@@ -38,12 +39,16 @@ public class BookingDTO {
         this.venue = booking.getVenue();
         this.address = booking.getAddress();
         this.notes = booking.getNotes();
-        this.status = booking.getStatus();
 
+        // Convert enum to string safely
+        PaymentStatus bookingStatus = booking.getStatus();
+        this.status = bookingStatus != null ? bookingStatus.name() : "PENDING";
+
+        // Map service details
         Service s = booking.getBookedService();
         if (s != null) {
             this.serviceId = s.getId();
-            this.serviceTitle = s.getServiceTitle(); // make sure this matches your Service entity
+            this.serviceTitle = s.getServiceTitle(); 
             this.serviceDescription = s.getDescription();
             this.servicePrice = s.getPrice();
 

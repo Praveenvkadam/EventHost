@@ -1,6 +1,7 @@
 package in.backend.service;
 
 import in.backend.entity.Booking;
+import in.backend.enums.PaymentStatus;
 import in.backend.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
@@ -27,20 +28,21 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
-    // Get bookings by status (e.g., pending, confirmed)
-    public List<Booking> getBookingsByStatus(String status) {
+    // Get bookings by status
+    public List<Booking> getBookingsByStatus(PaymentStatus status) {
+        if (status == null) throw new IllegalArgumentException("Booking status cannot be null");
         return bookingRepository.findByStatus(status);
     }
 
-    // Get a booking by ID
+    // Get booking by ID
     public Optional<Booking> getBookingById(Long id) {
         if (id == null) return Optional.empty();
         return bookingRepository.findById(id);
     }
 
-    // Update booking (can be used to update status or other fields)
+    // Update booking
     public Booking updateBooking(Booking booking) {
-        if (booking == null || booking.getId() == null) 
+        if (booking == null || booking.getId() == null)
             throw new IllegalArgumentException("Booking or booking ID cannot be null");
         return bookingRepository.save(booking);
     }
@@ -52,9 +54,12 @@ public class BookingService {
     }
 
     // Update booking status
-    public Booking updateBookingStatus(Long id, String status) {
+    public Booking updateBookingStatus(Long id, PaymentStatus status) {
+        if (status == null) throw new IllegalArgumentException("Booking status cannot be null");
+
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + id));
+
         booking.setStatus(status);
         return bookingRepository.save(booking);
     }

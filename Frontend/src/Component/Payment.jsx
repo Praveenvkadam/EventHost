@@ -13,10 +13,12 @@ const Payment = () => {
   const [sdkReady, setSdkReady] = useState(false);
   const [razorpayKey, setRazorpayKey] = useState("");
 
+  // Redirect if no booking
   useEffect(() => {
     if (!booking) navigate("/final-submit");
   }, [booking, navigate]);
 
+  // Load Razorpay SDK and fetch key
   useEffect(() => {
     if (document.getElementById("razorpay-sdk")) {
       setSdkReady(true);
@@ -30,15 +32,25 @@ const Payment = () => {
     script.onerror = () => alert("Failed to load Razorpay SDK");
     document.body.appendChild(script);
 
-    fetch("http://localhost:8080/api/payment/key")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchRazorpayKey = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/payment/key");
+        if (!res.ok) throw new Error(`Failed to fetch key: ${res.status}`);
+        const text = await res.text();
+        if (!text) throw new Error("Empty response from backend");
+        const data = JSON.parse(text);
         if (data.key) setRazorpayKey(data.key);
         else alert("Razorpay key not received from backend");
-      })
-      .catch((err) => console.error("Failed to fetch Razorpay key:", err));
+      } catch (err) {
+        console.error("Failed to fetch Razorpay key:", err);
+        alert("Failed to load Razorpay key: " + err.message);
+      }
+    };
+
+    fetchRazorpayKey();
   }, []);
 
+  // Open Razorpay checkout
   const openRazorpay = async () => {
     if (!booking) return alert("Booking data missing");
     if (!sdkReady) return alert("Razorpay SDK not ready");
@@ -51,7 +63,9 @@ const Payment = () => {
       const res = await fetch(
         `http://localhost:8080/api/payment/create-order?amount=${booking.servicePrice}`
       );
-      const orderData = await res.json();
+      const orderText = await res.text();
+      if (!orderText) throw new Error("No order data returned");
+      const orderData = JSON.parse(orderText);
 
       if (!orderData?.id) {
         alert("Failed to create order");
@@ -74,14 +88,16 @@ const Payment = () => {
               body: JSON.stringify({
                 paymentId: response.razorpay_payment_id,
                 bookingId: booking.id,
+                razorpayOrderId: orderData.id,
               }),
             });
-            const confirmData = await confirmRes.json();
+            const confirmText = await confirmRes.text();
+            const confirmData = confirmText ? JSON.parse(confirmText) : {};
 
             if (confirmRes.ok) {
-              alert("Payment successful. Receipt has been sent to your email.");
+              alert("Payment successful. Receipt sent to email.");
             } else {
-              alert("Payment succeeded but failed to send email: " + confirmData.error);
+              alert("Payment succeeded but failed to process backend: " + (confirmData.error || ""));
             }
 
             navigate("/final-submit", {
@@ -108,7 +124,7 @@ const Payment = () => {
       razor.open();
     } catch (error) {
       console.error("Payment error:", error);
-      alert("Something went wrong during payment");
+      alert("Something went wrong during payment: " + error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -193,4 +209,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
