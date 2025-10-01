@@ -29,36 +29,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for REST APIs
             .csrf(csrf -> csrf.disable())
-            
-            // Enable CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // Set authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/images/**",
                     "/api/services/**",
                     "/api/bookings/**",
-                    "/api/payment/**",         
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/api/payment/**"  // payment endpoints public
                 ).permitAll()
-                // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
-            
-            // Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
-            // Authentication provider
             .authenticationProvider(authenticationProvider())
-            
-            // Add JWT filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -86,7 +70,7 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*")); // For dev, allow all origins
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 

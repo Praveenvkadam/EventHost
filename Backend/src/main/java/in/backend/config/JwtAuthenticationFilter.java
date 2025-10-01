@@ -25,13 +25,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
+
+        // ----------------------------
+        // APIs that do NOT require JWT
+        // ----------------------------
         return path.startsWith("/api/auth") ||
                path.startsWith("/api/password") ||
                path.startsWith("/api/images") ||
                path.startsWith("/api/services") ||
                path.startsWith("/api/bookings") ||
-               path.startsWith("/v3/api-docs") ||
-               path.startsWith("/swagger-ui");
+               path.startsWith("/api/payment"); // <--- Make this public. Remove if you want JWT protection
     }
 
     @Override

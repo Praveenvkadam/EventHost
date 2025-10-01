@@ -10,57 +10,44 @@ const Payment = () => {
 
   const [selectedMethod, setSelectedMethod] = useState("credit-card");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [razorpayKey, setRazorpayKey] = useState("");
   const [sdkReady, setSdkReady] = useState(false);
+  const [razorpayKey, setRazorpayKey] = useState("");
 
-  // Redirect if booking is missing
   useEffect(() => {
     if (!booking) navigate("/final-submit");
   }, [booking, navigate]);
 
-  // Load Razorpay SDK dynamically
   useEffect(() => {
-    const loadRazorpaySdk = () => {
-      return new Promise((resolve) => {
-        if (window.Razorpay) return resolve(true);
+    if (document.getElementById("razorpay-sdk")) {
+      setSdkReady(true);
+      return;
+    }
 
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.body.appendChild(script);
-      });
-    };
+    const script = document.createElement("script");
+    script.id = "razorpay-sdk";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => setSdkReady(true);
+    script.onerror = () => alert("Failed to load Razorpay SDK");
+    document.body.appendChild(script);
 
-    const fetchKey = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/payment/key");
-        const data = await res.json();
+    fetch("http://localhost:8080/api/payment/key")
+      .then((res) => res.json())
+      .then((data) => {
         if (data.key) setRazorpayKey(data.key);
-      } catch (err) {
-        console.error("Failed to fetch Razorpay key:", err);
-      }
-    };
-
-    loadRazorpaySdk().then((loaded) => {
-      if (loaded) setSdkReady(true);
-      else alert("Failed to load Razorpay SDK");
-    });
-
-    fetchKey();
+        else alert("Razorpay key not received from backend");
+      })
+      .catch((err) => console.error("Failed to fetch Razorpay key:", err));
   }, []);
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-
-    if (!booking) return alert("Booking data missing!");
+  const openRazorpay = async () => {
+    if (!booking) return alert("Booking data missing");
     if (!sdkReady) return alert("Razorpay SDK not ready");
     if (!razorpayKey) return alert("Razorpay key not loaded");
+    if (!window.Razorpay) return alert("Razorpay SDK not available");
 
     setIsProcessing(true);
 
     try {
-      // Create order on backend
       const res = await fetch(
         `http://localhost:8080/api/payment/create-order?amount=${booking.servicePrice}`
       );
@@ -72,7 +59,6 @@ const Payment = () => {
         return;
       }
 
-      // Razorpay options
       const options = {
         key: razorpayKey,
         amount: orderData.amount,
@@ -80,19 +66,31 @@ const Payment = () => {
         name: "Event Management",
         description: booking.serviceTitle || "Event Payment",
         order_id: orderData.id,
-        handler: async (response) => {
-          alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+        handler: async function (response) {
+          try {
+            const confirmRes = await fetch(`http://localhost:8080/api/payment/confirm`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                paymentId: response.razorpay_payment_id,
+                bookingId: booking.id,
+              }),
+            });
+            const confirmData = await confirmRes.json();
 
-          await fetch("http://localhost:8080/api/payment/confirm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              paymentId: response.razorpay_payment_id,
-              bookingId: booking.id,
-            }),
-          });
+            if (confirmRes.ok) {
+              alert("Payment successful. Receipt has been sent to your email.");
+            } else {
+              alert("Payment succeeded but failed to send email: " + confirmData.error);
+            }
 
-          navigate("/final-submit", { state: { paymentId: response.razorpay_payment_id } });
+            navigate("/final-submit", {
+              state: { paymentId: response.razorpay_payment_id },
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Error confirming payment or sending email");
+          }
         },
         prefill: {
           name: booking.fullName || "John Doe",
@@ -104,16 +102,21 @@ const Payment = () => {
       };
 
       const razor = new window.Razorpay(options);
-      razor.on("payment.failed", (response) => {
+      razor.on("payment.failed", function (response) {
         alert("Payment failed: " + response.error.description);
       });
       razor.open();
-    } catch (err) {
-      console.error("Payment error:", err);
-      alert("Something went wrong during payment.");
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Something went wrong during payment");
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePayment = (e) => {
+    e.preventDefault();
+    openRazorpay();
   };
 
   if (!booking) return <div className="text-center mt-10">Loading...</div>;
@@ -131,7 +134,6 @@ const Payment = () => {
       <section className="max-w-4xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-slate-900 mb-6">Payment</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Booking Summary */}
           <div className="bg-white p-6 rounded-xl shadow border border-slate-200">
             <h2 className="text-xl font-semibold text-slate-900 mb-4">Booking Summary</h2>
             <div className="space-y-3">
@@ -148,7 +150,6 @@ const Payment = () => {
             </div>
           </div>
 
-          {/* Payment Options */}
           <div className="bg-white p-6 rounded-xl shadow border border-slate-200">
             <h2 className="text-xl font-semibold text-slate-900 mb-4">Payment Options</h2>
             <div className="mb-6">
@@ -192,3 +193,4 @@ const Payment = () => {
 };
 
 export default Payment;
+
