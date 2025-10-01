@@ -13,15 +13,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000") // your React app
+                .allowedOriginPatterns("http://localhost:5173") // frontend origin
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(true); // credentials allowed now
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Serve uploaded videos
         registry.addResourceHandler("/videos/**")
                 .addResourceLocations("file:" + UPLOAD_DIR);
     }

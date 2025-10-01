@@ -7,21 +7,31 @@ import lombok.Data;
 @Data
 public class BookingDTO {
     private Long id;
+    private String fullName;
+    private String email;
+    private String phone;
     private String eventDate;
     private String eventTime;
-    private int guests;
+    private Integer guests;
     private String venue;
     private String address;
     private String notes;
     private String status;
 
+    // Service details
     private Long serviceId;
-    private String serviceName;
+    private String serviceTitle;
+    private String serviceDescription;
     private Double servicePrice;
-    private String serviceImg; // ✅ first image only
+    private String serviceImg; // first available image only
 
     public BookingDTO(Booking booking) {
+        if (booking == null) return;
+
         this.id = booking.getId();
+        this.fullName = booking.getFullName();
+        this.email = booking.getEmail();
+        this.phone = booking.getPhone();
         this.eventDate = booking.getEventDate();
         this.eventTime = booking.getEventTime();
         this.guests = booking.getGuests();
@@ -30,16 +40,18 @@ public class BookingDTO {
         this.notes = booking.getNotes();
         this.status = booking.getStatus();
 
-        if (booking.getBookedService() != null) {
-            Service s = booking.getBookedService();
+        Service s = booking.getBookedService();
+        if (s != null) {
             this.serviceId = s.getId();
-            this.serviceName = s.getName();
+            this.serviceTitle = s.getServiceTitle(); // make sure this matches your Service entity
+            this.serviceDescription = s.getDescription();
             this.servicePrice = s.getPrice();
-            // ✅ Pick first available image
-            this.serviceImg = s.getImage1() != null ? s.getImage1() :
-                              s.getImage2() != null ? s.getImage2() :
-                              s.getImage3() != null ? s.getImage3() :
-                              s.getImage4();
+
+            // pick first available image
+            this.serviceImg = s.getImage1() != null ? s.getImage1()
+                          : s.getImage2() != null ? s.getImage2()
+                          : s.getImage3() != null ? s.getImage3()
+                          : s.getImage4();
         }
     }
 }

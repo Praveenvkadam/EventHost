@@ -11,6 +11,7 @@ import AboutUS from './Pages/Users/AboutUS'
 import Service from './Pages/Users/Service'
 import Booking from './Component/Booking'
 import FinalSubmit from './Component/FinalSubmit'
+import Payment from './Component/Payment'
 
 
 
@@ -33,6 +34,7 @@ const App = () => {
           <Route path='/services' element={<Service/>}/>
           <Route path='/booking' element={<Booking/>}/>
           <Route path='/final-submit' element={<FinalSubmit/>}/>
+          <Route path='/payment' element={<Payment/>}/>
           
 
           {/* Admin Panel */}

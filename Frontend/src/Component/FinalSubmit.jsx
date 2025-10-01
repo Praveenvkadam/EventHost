@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -64,11 +64,12 @@ const FinalSubmit = () => {
                 key={b.id}
                 className="bg-white p-5 rounded-2xl shadow border border-slate-200"
               >
+                {/* Service Info */}
                 <div className="flex items-center mb-3">
                   {b.serviceImg ? (
                     <img
                       src={b.serviceImg}
-                      alt={b.serviceName}
+                      alt={b.serviceTitle}
                       className="w-20 h-20 object-cover rounded-xl mr-4"
                     />
                   ) : (
@@ -77,7 +78,7 @@ const FinalSubmit = () => {
                     </div>
                   )}
                   <div>
-                    <h2 className="text-lg font-semibold">{b.serviceName || "Event"}</h2>
+                    <h2 className="text-lg font-semibold">{b.serviceTitle || "Event"}</h2>
                     <p className="text-indigo-600 font-bold">
                       ₹{b.servicePrice?.toLocaleString() ?? "N/A"}
                     </p>
@@ -85,29 +86,29 @@ const FinalSubmit = () => {
                   </div>
                 </div>
 
+                {/* Service Description */}
+                {b.serviceDescription && (
+                  <p className="text-sm text-slate-600 mb-3 line-clamp-3">
+                    {b.serviceDescription}
+                  </p>
+                )}
+
+                {/* Booking Details */}
                 <div className="text-sm text-slate-700 mb-3">
-                  <p>
-                    <strong>Date:</strong> {b.eventDate}
-                  </p>
-                  <p>
-                    <strong>Time:</strong> {b.eventTime}
-                  </p>
-                  <p>
-                    <strong>Guests:</strong> {b.guests}
-                  </p>
-                  <p>
-                    <strong>Venue:</strong> {b.venue}
-                  </p>
-                  <p>
-                    <strong>Address:</strong> {b.address}
-                  </p>
-                  <p>
-                    <strong>Notes:</strong> {b.notes}
-                  </p>
+                  <p><strong>Name:</strong> {b.fullName}</p>
+                  <p><strong>Email:</strong> {b.email}</p>
+                  <p><strong>Phone:</strong> {b.phone}</p>
+                  <p><strong>Date:</strong> {b.eventDate}</p>
+                  <p><strong>Time:</strong> {b.eventTime}</p>
+                  <p><strong>Guests:</strong> {b.guests}</p>
+                  <p><strong>Venue:</strong> {b.venue}</p>
+                  <p><strong>Address:</strong> {b.address}</p>
+                  <p><strong>Notes:</strong> {b.notes}</p>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <button
+                <button
                     onClick={() => handlePayment(b)}
                     className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"
                   >

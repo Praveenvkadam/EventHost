@@ -18,6 +18,7 @@ public class BookingService {
 
     // Save a new booking
     public Booking saveBooking(Booking booking) {
+        if (booking == null) throw new IllegalArgumentException("Booking cannot be null");
         return bookingRepository.save(booking);
     }
 
@@ -33,16 +34,28 @@ public class BookingService {
 
     // Get a booking by ID
     public Optional<Booking> getBookingById(Long id) {
+        if (id == null) return Optional.empty();
         return bookingRepository.findById(id);
     }
 
-    // Update booking
+    // Update booking (can be used to update status or other fields)
     public Booking updateBooking(Booking booking) {
+        if (booking == null || booking.getId() == null) 
+            throw new IllegalArgumentException("Booking or booking ID cannot be null");
         return bookingRepository.save(booking);
     }
 
-    // Delete booking
+    // Delete booking by ID
     public void deleteBooking(Long id) {
+        if (id == null) throw new IllegalArgumentException("Booking ID cannot be null");
         bookingRepository.deleteById(id);
+    }
+
+    // Update booking status
+    public Booking updateBookingStatus(Long id, String status) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + id));
+        booking.setStatus(status);
+        return bookingRepository.save(booking);
     }
 }
