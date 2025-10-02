@@ -32,14 +32,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints for testing
+                // Public endpoints – no JWT required
                 .requestMatchers(
                     "/api/auth/**",
+                    "/api/password/**",
                     "/api/images/**",
                     "/api/services/**",
                     "/api/bookings/**",
                     "/api/payment/**",
-                    "/api/admin/orders/**"  // <-- Added for testing
+                    "/api/admin/orders/**",
+                    "/api/employees/**"
                 ).permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
@@ -73,7 +75,7 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*")); // allow all origins
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 

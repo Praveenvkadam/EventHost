@@ -31,7 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/services",
             "/api/bookings",
             "/api/payment",
-            "/api/admin/orders" 
+            "/api/admin/orders",
+            "/api/employees"
     );
 
     @Override

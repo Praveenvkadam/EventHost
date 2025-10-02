@@ -5,6 +5,7 @@ import Gallary from './Gallary'
 import Users from './Users'
 import AddPackage from './AddPackage'
 import Orders from './Orders'
+import AddEmp from './AddEmp'
 import { Users as UsersIcon, CalendarClock, IndianRupee, TrendingUp } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import {
@@ -213,6 +214,14 @@ const A_Home = () => {
             </li>
             <li>
               <Link
+                to="/admin/addemp"
+                className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/addemp')}`}
+              >
+                Add Employees
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/admin/gallery"
                 className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/gallery')}`}
               >
@@ -263,6 +272,7 @@ const A_Home = () => {
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="addemp" element={<AddEmp />} />
         </Routes>
       </main>
     </div>
