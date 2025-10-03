@@ -12,6 +12,7 @@ import Service from './Pages/Users/Service'
 import Booking from './Component/Booking'
 import FinalSubmit from './Component/FinalSubmit'
 import Payment from './Component/Payment'
+import FeedbackPage from "./Pages/Users/FeedbackPage"
 
 
 
@@ -35,7 +36,7 @@ const App = () => {
           <Route path='/booking' element={<Booking/>}/>
           <Route path='/final-submit' element={<FinalSubmit/>}/>
           <Route path='/payment' element={<Payment/>}/>
-          
+          <Route  path='/feedback' element={<FeedbackPage/>}/>
 
           {/* Admin Panel */}
           <Route path="/admin/*" element={<A_Home />} />

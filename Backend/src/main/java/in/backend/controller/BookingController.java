@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "http://localhost:5173") // React frontend
+@CrossOrigin(origins = "http://localhost:3000") // React frontend
 public class BookingController {
 
     private final BookingRepository bookingRepository;

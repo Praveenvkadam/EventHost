@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173") // Your React frontend
+@CrossOrigin(origins = "http://localhost:3000") // Your React frontend
 public class EmployeeController {
 
     private final EmployeeService employeeService;

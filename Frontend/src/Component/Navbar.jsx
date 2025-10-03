@@ -85,6 +85,9 @@ const Navbar = () => {
             <Link to="/gallaryPage" className="hover:text-yellow-300 transition-colors">
             Gallary
             </Link>
+            <Link to="/feedback" className="hover:text-yellow-300 transition-colors">
+             Feedback
+            </Link>
             {userId === 1 && (
               <Link to="/admin/*" className="hover:text-yellow-300 transition-colors">
                 Dashboard

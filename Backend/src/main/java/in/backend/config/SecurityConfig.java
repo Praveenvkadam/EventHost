@@ -4,6 +4,7 @@ import in.backend.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,23 +33,37 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints – no JWT required
+                // Admin endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Feedback endpoints
+                .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/feedback/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/feedback/**").hasRole("ADMIN")
+                // Public endpoints
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/api/password/**",
-                    "/api/images/**",
-                    "/api/services/**",
-                    "/api/bookings/**",
-                    "/api/payment/**",
-                    "/api/admin/orders/**",
-                    "/api/employees/**"
+                        "/api/auth/**",
+                        "/api/password/**",
+                        "/api/images/**",
+                        "/api/services/**",
+                        "/api/bookings/**",
+                        "/api/payment/**",
+                        "/api/employees/**"
                 ).permitAll()
-                // All other endpoints require authentication
+                // Any other request requires authentication
                 .anyRequest().authenticated()
             )
+            // Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            // JWT filter
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            // Handle unauthorized access
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(401);
+                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                })
+            );
 
         return http.build();
     }
@@ -75,7 +90,7 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(List.of("*")); // allow all origins (for dev)
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 

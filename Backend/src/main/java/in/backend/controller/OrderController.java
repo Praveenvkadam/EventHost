@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/orders")
+@RequestMapping("/api/orders") // removed /admin to avoid conflict
+@CrossOrigin("*")
 public class OrderController {
 
     @Autowired
@@ -20,8 +21,7 @@ public class OrderController {
     // Fetch all orders
     @GetMapping
     public ResponseEntity<List<OrderEntity>> getAllOrders() {
-        List<OrderEntity> orders = orderRepository.findAll();
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orderRepository.findAll());
     }
 
     // Fetch single order by ID
@@ -41,7 +41,6 @@ public class OrderController {
         try {
             PaymentStatus newStatus = PaymentStatus.valueOf(status.toUpperCase());
             order.setStatus(newStatus);
-            // Optionally update timestamp
             order.setCreatedAt(LocalDateTime.now());
             orderRepository.save(order);
             return ResponseEntity.ok(order);

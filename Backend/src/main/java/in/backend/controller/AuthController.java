@@ -22,7 +22,7 @@ import in.backend.service.UserService;
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173") // Allow CORS from frontend
+@CrossOrigin(origins = "http://localhost:3000") // Allow CORS from frontend
 public class AuthController {
 
     private final UserService userService;

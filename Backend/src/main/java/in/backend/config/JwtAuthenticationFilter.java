@@ -23,7 +23,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
-    // Public endpoints – do not require JWT
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth",
             "/api/password",
@@ -31,8 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/services",
             "/api/bookings",
             "/api/payment",
-            "/api/admin/orders",
-            "/api/employees"
+            "/api/feedback"
     );
 
     @Override
@@ -59,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities()
+                                userDetails.getAuthorities() // MUST include ROLE_ADMIN
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
