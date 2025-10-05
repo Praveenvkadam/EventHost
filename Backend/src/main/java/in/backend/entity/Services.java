@@ -2,11 +2,12 @@ package in.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "services")
-public class Service {
+public class Services {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +27,14 @@ public class Service {
     private String image3;
     private String image4;
 
-    // Convenience method
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
     public String getServiceTitle() {
         return this.name;
     }

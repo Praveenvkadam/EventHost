@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,7 +18,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -34,29 +32,26 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 // Admin endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Feedback endpoints
-                .requestMatchers(HttpMethod.GET, "/api/feedback/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/feedback/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/feedback/**").hasRole("ADMIN")
-                // Public endpoints
+                .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
+
+                // Public endpoints (anyone can GET)
+                .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                 .requestMatchers(
                         "/api/auth/**",
                         "/api/password/**",
                         "/api/images/**",
-                        "/api/services/**",
                         "/api/bookings/**",
                         "/api/payment/**",
-                        "/api/employees/**"
+                        "/api/feedback/**"
                 ).permitAll()
+
                 // Any other request requires authentication
                 .anyRequest().authenticated()
             )
-            // Stateless session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // JWT filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            // Handle unauthorized access
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");
@@ -69,7 +64,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(customUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
@@ -90,8 +85,8 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*")); // allow all origins (for dev)
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

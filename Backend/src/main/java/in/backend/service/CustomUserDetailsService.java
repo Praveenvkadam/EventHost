@@ -26,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         List<GrantedAuthority> authorities;
 
-        // If user id=1 → ADMIN
+        // If user id=1  ADMIN
         if (user.getId() == 1L) {
             authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         } else {

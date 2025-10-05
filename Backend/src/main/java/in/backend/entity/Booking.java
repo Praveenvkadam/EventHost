@@ -36,5 +36,5 @@ public class Booking {
     // Link to the booked service/event
     @ManyToOne
     @JoinColumn(name = "service_id")
-    private Service bookedService;
+    private Services bookedService;
 }

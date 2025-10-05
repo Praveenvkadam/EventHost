@@ -3,51 +3,66 @@ package in.backend.controller;
 import in.backend.dto.ServicesResponse;
 import in.backend.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/services")
-@CrossOrigin(origins = "http://localhost:3000") 
+@CrossOrigin(origins = "http://localhost:3000")
 public class ServiceController {
 
     @Autowired
     private ServiceService serviceService;
 
-    // ✅ Get all services
+    // Public GET
     @GetMapping
     public ResponseEntity<List<ServicesResponse>> getAllServices() {
         return ResponseEntity.ok(serviceService.getAllServices());
     }
 
-    // ✅ Get service by ID
     @GetMapping("/{id}")
     public ResponseEntity<ServicesResponse> getServiceById(@PathVariable Long id) {
         ServicesResponse service = serviceService.getServiceById(id);
-        return (service != null) ? ResponseEntity.ok(service) : ResponseEntity.notFound().build();
+        return service != null ? ResponseEntity.ok(service) : ResponseEntity.notFound().build();
     }
 
-    // ✅ Create new service
+    // Admin POST
     @PostMapping
-    public ResponseEntity<ServicesResponse> createService(@RequestBody ServicesResponse serviceResponse) {
-        ServicesResponse created = serviceService.createService(serviceResponse);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<ServicesResponse> createService(
+            @RequestBody ServicesResponse dto,
+            Authentication auth) {
+
+        if (auth == null || !auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(serviceService.createService(dto));
     }
 
-    // ✅ Update service
+    // Admin PUT
     @PutMapping("/{id}")
     public ResponseEntity<ServicesResponse> updateService(
             @PathVariable Long id,
-            @RequestBody ServicesResponse serviceResponse) {
-        ServicesResponse updated = serviceService.updateService(id, serviceResponse);
-        return (updated != null) ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+            @RequestBody ServicesResponse dto,
+            Authentication auth) {
+
+        if (auth == null || !auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        ServicesResponse updated = serviceService.updateService(id, dto);
+        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
     }
 
-    // ✅ Delete service
+    // Admin DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteService(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteService(@PathVariable Long id, Authentication auth) {
+        if (auth == null || !auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         serviceService.deleteService(id);
         return ResponseEntity.noContent().build();
     }

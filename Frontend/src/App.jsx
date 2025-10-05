@@ -40,9 +40,7 @@ const App = () => {
 
           {/* Admin Panel */}
           <Route path="/admin/*" element={<A_Home />} />
-          {/* A_Home will handle internal routes like:
-              /admin/dashboard, /admin/users, /admin/events, /admin/gallary, etc.
-          */}
+          
         </Routes>
       </div>
     </div>

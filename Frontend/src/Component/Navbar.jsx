@@ -132,17 +132,12 @@ const Navbar = () => {
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg overflow-hidden">
                     <ul className="text-gray-800 text-sm">
                       <li>
-                        <Link
-                          to="/profile"
-                          className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
-                        >
-                          Profile
-                        </Link>
+                      
                       </li>
                       {userId === 1 && (
                         <li>
                           <Link
-                            to="/dashboard"
+                            to="/admin/*"
                             className="block px-4 py-2 hover:bg-indigo-100 transition-colors"
                           >
                             Dashboard
@@ -230,9 +225,7 @@ const Navbar = () => {
           {/* Login/Signup or Profile/Logout */}
           {userName ? (
             <>
-              <Link to="/profile" onClick={() => setSidebarOpen(false)}>
-                Profile
-              </Link>
+              
               <button
                 onClick={() => {
                   handleLogout()

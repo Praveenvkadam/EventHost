@@ -1,7 +1,7 @@
 package in.backend.dto;
 
 import in.backend.entity.Booking;
-import in.backend.entity.Service;
+import in.backend.entity.Services;
 import in.backend.enums.PaymentStatus;
 import lombok.Data;
 
@@ -45,7 +45,7 @@ public class BookingDTO {
         this.status = bookingStatus != null ? bookingStatus.name() : "PENDING";
 
         // Map service details
-        Service s = booking.getBookedService();
+        Services s = booking.getBookedService();
         if (s != null) {
             this.serviceId = s.getId();
             this.serviceTitle = s.getServiceTitle(); 

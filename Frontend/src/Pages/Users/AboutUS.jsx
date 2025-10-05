@@ -6,22 +6,39 @@ import Footer from "../../Component/Footer";
 export default function AboutUs() {
   const sections = [
     {
-      title: "Our Story",
+      title: "Weddings & Celebrations",
       description:
-        "Since our inception, we have focused on delivering exceptional events and projects. Every step we take is guided by creativity, collaboration, and the drive to exceed expectations.",
-      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80",
+        "We specialize in crafting dream weddings and joyous celebrations that reflect your unique story. From decor to entertainment, every detail is managed with care and passion.",
+      image:
+        "https://www.maharaniweddings.com/wp-content/uploads/2012/12/1-indian-wedding-ceremony-mandap-floral-bride-and-groom.jpg",
     },
     {
-      title: "Our Mission",
+      title: "Corporate Events",
       description:
-        "We aim to create memorable experiences that leave a lasting impact. Our team is dedicated to bringing innovation and excellence to every event we organize.",
-      image: "https://images.unsplash.com/photo-1581091012184-d0f3f5c63a37?auto=format&fit=crop&w=1200&q=80",
+        "Our team designs professional and engaging corporate events — conferences, product launches, and team-building activities that leave a lasting impression.",
+      image:
+        "https://emg.co.in/images/corporate-event-header.jpg",
     },
     {
-      title: "Our Vision",
+      title: "Cultural & Music Festivals",
       description:
-        "To become a leading event management organization known for creativity, dedication, and client satisfaction. We believe collaboration is the key to success.",
-      image: "https://images.unsplash.com/photo-1598966737790-9b5fa3d8e540?auto=format&fit=crop&w=1200&q=80",
+        "From local cultural programs to grand music concerts, we ensure every event is a vibrant experience filled with energy, creativity, and joy.",
+      image:
+        "https://www.indianeagle.com/travelbeats//wp-content/uploads/2013/10/khajuraho-dance-festival-overview.jpg?w=547",
+    },
+    {
+      title: "Exhibitions & Trade Shows",
+      description:
+        "We provide complete exhibition and trade show management — from stall design to logistics — ensuring smooth execution and a strong brand impact.",
+      image:
+        "https://www.thetradeshownetwork.com/hubfs/1673620641503.jpg",
+    },
+    {
+      title: "College & Community Events",
+      description:
+        "We collaborate with colleges and communities to bring innovative and fun events to life — fests, cultural programs, sports meets, and more.",
+      image:
+        "https://www.instaevent.in/images/webimages/college%20events/idea.jpg",
     },
   ];
 
@@ -31,7 +48,7 @@ export default function AboutUs() {
       {/* Hero Section */}
       <section className="relative h-[500px] w-full overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80"
+          src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80"
           alt="Hero"
           className="w-full h-full object-cover"
         />
@@ -50,7 +67,7 @@ export default function AboutUs() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 1 }}
           >
-            We create unforgettable experiences blending creativity, technology, and dedication.
+            Turning ideas into unforgettable events with creativity, precision, and passion.
           </motion.p>
         </div>
       </section>
@@ -59,7 +76,7 @@ export default function AboutUs() {
       {sections.map((sec, idx) => (
         <section
           key={idx}
-          className={`py-24 px-6 max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 ${
+          className={`py-20 px-6 max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 ${
             idx % 2 === 1 ? "md:flex-row-reverse" : ""
           }`}
         >
@@ -99,6 +116,7 @@ export default function AboutUs() {
           ></iframe>
         </div>
       </section>
+
       <Footer />
     </div>
   );

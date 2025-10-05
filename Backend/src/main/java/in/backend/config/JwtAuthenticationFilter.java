@@ -23,11 +23,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
+    // List of public paths that do not require JWT
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth",
             "/api/password",
             "/api/images",
-            "/api/services",
+            "/api/services",   // GET requests allowed without token
             "/api/bookings",
             "/api/payment",
             "/api/feedback"
@@ -36,7 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        // Skip preflight OPTIONS requests
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
+
+        // Skip all explicitly public paths
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith) && "GET".equalsIgnoreCase(request.getMethod());
     }
 
     @Override
@@ -44,47 +49,63 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String jwt = extractToken(request);
+        String token = extractToken(request);
 
-        if (jwt != null && !jwt.isEmpty()) {
+        if (token != null) {
             try {
-                String email = jwtService.extractSubject(jwt);
+                String email = jwtService.extractSubject(token);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     var userDetails = userDetailsService.loadUserByUsername(email);
 
-                    if (jwtService.validateToken(jwt, userDetails)) {
+                    if (jwtService.validateToken(token, userDetails)) {
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities() // MUST include ROLE_ADMIN
+                                userDetails.getAuthorities()
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     } else {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"Invalid or expired JWT token\"}");
+                        unauthorized(response, "Invalid or expired JWT token");
                         return;
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Invalid or expired JWT token\"}");
+                unauthorized(response, "Invalid or expired JWT token");
                 return;
             }
+        } else if (requiresAuth(request)) {
+            // Token missing on secured endpoint
+            unauthorized(response, "Missing JWT token");
+            return;
         }
 
         filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
         return null;
+    }
+
+    private boolean requiresAuth(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+        // POST, PUT, DELETE on /api/services require authentication
+        return (path.startsWith("/api/services") && 
+                ("POST".equalsIgnoreCase(method) || 
+                 "PUT".equalsIgnoreCase(method) || 
+                 "DELETE".equalsIgnoreCase(method)));
+    }
+
+    private void unauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 }

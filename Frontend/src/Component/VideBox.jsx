@@ -1,21 +1,17 @@
 import React from 'react'
 
-const VideBox = ({
-  title = 'Your Video Title',
-  description = 'Add a short description for this video to give users more context.',
-  primaryButtonText = 'Play',
-  secondaryButtonText = 'Learn More',
-  onPrimaryClick = () => {},
-  onSecondaryClick = () => {},
-  videoSrc = 'https://www.youtube.com/embed/qcTG5NXzuR0?si=b6Qirif4Tq8z9Quc&autoplay=1&mute=1&loop=1&playlist=qcTG5NXzuR0', // ✅ autoplay + loop
+const VideoBox = ({
+  title = 'Tech Innovators 2025',
+  description = 'Join the leading minds in technology for an immersive experience of innovation, AI breakthroughs, cloud transformation, and the future of digital engineering.',
+  videoSrc = 'https://www.youtube.com/embed/qcTG5NXzuR0?si=b6Qirif4Tq8z9Quc&autoplay=1&mute=1&loop=1&playlist=qcTG5NXzuR0', // autoplay + loop
 }) => {
   return (
     <div className='relative w-full h-[85vh] overflow-hidden rounded-xl bg-black'>
-      {/* ✅ YouTube Embed */}
+  
       <iframe
         className='absolute inset-0 h-full w-full object-cover'
         src={videoSrc}
-        title='YouTube video player'
+        title='IT Event Video Background'
         frameBorder='0'
         allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
         referrerPolicy='strict-origin-when-cross-origin'
@@ -32,25 +28,10 @@ const VideBox = ({
           <p className='mt-3 text-sm leading-relaxed text-gray-200 md:mt-4 md:text-base'>
             {description}
           </p>
-
-          <div className='mt-5 flex flex-wrap items-center justify-center gap-3'>
-            <button
-              onClick={onPrimaryClick}
-              className='inline-flex items-center justify-center rounded-md bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-gray-200 active:scale-[0.98] min-w-[140px] md:min-w-[160px]'
-            >
-              {primaryButtonText}
-            </button>
-            <button
-              onClick={onSecondaryClick}
-              className='inline-flex items-center justify-center rounded-md border border-white/80 bg-transparent px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10 active:scale-[0.98] min-w-[140px] md:min-w-[160px]'
-            >
-              {secondaryButtonText}
-            </button>
-          </div>
         </div>
       </div>
     </div>
   )
 }
 
-export default VideBox
+export default VideoBox

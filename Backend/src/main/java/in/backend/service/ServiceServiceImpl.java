@@ -1,13 +1,15 @@
 package in.backend.service;
 
 import in.backend.dto.ServicesResponse;
-import in.backend.entity.Service;
+import in.backend.entity.Services;  // <-- match the new entity name
 import in.backend.repository.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-@org.springframework.stereotype.Service
+@Service
 public class ServiceServiceImpl implements ServiceService {
 
     @Autowired
@@ -29,23 +31,23 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
-    public ServicesResponse createService(ServicesResponse serviceResponse) {
-        Service service = mapToEntity(serviceResponse);
-        Service saved = serviceRepository.save(service);
+    public ServicesResponse createService(ServicesResponse dto) {
+        Services entity = mapToEntity(dto);
+        Services saved = serviceRepository.save(entity);
         return mapToDto(saved);
     }
 
     @Override
-    public ServicesResponse updateService(Long id, ServicesResponse serviceResponse) {
+    public ServicesResponse updateService(Long id, ServicesResponse dto) {
         return serviceRepository.findById(id).map(existing -> {
-            existing.setName(serviceResponse.getTitle());
-            existing.setDescription(serviceResponse.getDescription());
-            existing.setPrice(serviceResponse.getPrice());
-            existing.setImage1(serviceResponse.getImage1());
-            existing.setImage2(serviceResponse.getImage2());
-            existing.setImage3(serviceResponse.getImage3());
-            existing.setImage4(serviceResponse.getImage4());
-            Service updated = serviceRepository.save(existing);
+            existing.setName(dto.getTitle());
+            existing.setDescription(dto.getDescription());
+            existing.setPrice(dto.getPrice());
+            existing.setImage1(dto.getImage1());
+            existing.setImage2(dto.getImage2());
+            existing.setImage3(dto.getImage3());
+            existing.setImage4(dto.getImage4());
+            Services updated = serviceRepository.save(existing);
             return mapToDto(updated);
         }).orElse(null);
     }
@@ -55,36 +57,30 @@ public class ServiceServiceImpl implements ServiceService {
         serviceRepository.deleteById(id);
     }
 
-    // ✅ Private helper method for mapping Service → DTO
-    private ServicesResponse mapToDto(Service service) {
-        if (service == null) return null;
-
+    private ServicesResponse mapToDto(Services s) {
         ServicesResponse dto = new ServicesResponse();
-        dto.setId(service.getId());
-        dto.setTitle(service.getName());
-        dto.setDescription(service.getDescription());
-        dto.setPrice(service.getPrice());
-        dto.setImage1(service.getImage1());
-        dto.setImage2(service.getImage2());
-        dto.setImage3(service.getImage3());
-        dto.setImage4(service.getImage4());
-        dto.setUrlsFromImages(); // populate urls list if method exists in DTO
+        dto.setId(s.getId());
+        dto.setTitle(s.getName());
+        dto.setDescription(s.getDescription());
+        dto.setPrice(s.getPrice());
+        dto.setImage1(s.getImage1());
+        dto.setImage2(s.getImage2());
+        dto.setImage3(s.getImage3());
+        dto.setImage4(s.getImage4());
+        dto.setCreatedAt(s.getCreatedAt());
+        dto.setUrlsFromImages();
         return dto;
     }
 
-    // ✅ Private helper method for mapping DTO → Service
-    private Service mapToEntity(ServicesResponse dto) {
-        if (dto == null) return null;
-
-        Service service = new Service();
-        service.setId(dto.getId());
-        service.setName(dto.getTitle());
-        service.setDescription(dto.getDescription());
-        service.setPrice(dto.getPrice());
-        service.setImage1(dto.getImage1());
-        service.setImage2(dto.getImage2());
-        service.setImage3(dto.getImage3());
-        service.setImage4(dto.getImage4());
-        return service;
+    private Services mapToEntity(ServicesResponse dto) {
+        Services s = new Services();
+        s.setName(dto.getTitle());
+        s.setDescription(dto.getDescription());
+        s.setPrice(dto.getPrice());
+        s.setImage1(dto.getImage1());
+        s.setImage2(dto.getImage2());
+        s.setImage3(dto.getImage3());
+        s.setImage4(dto.getImage4());
+        return s;
     }
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { Link, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import Navbar from '../../Component/Navbar'
 import Gallary from './Gallary'
 import Users from './Users'
@@ -42,7 +42,7 @@ const A_Home = () => {
     navigate('/login')
   }
 
-  const isActive = (path) => location.pathname === path ? 'bg-sky-600' : ''
+  const isActive = (path) => location.pathname === `/admin/${path}` ? 'bg-sky-600' : ''
 
   // ---------------- Dashboard state ----------------
   const [kpis, setKpis] = React.useState({
@@ -53,12 +53,24 @@ const A_Home = () => {
 
   const [lineData, setLineData] = React.useState({
     labels: [],
-    datasets: [{ label: 'Monthly Orders', data: [], borderColor: 'rgb(2, 132, 199)', backgroundColor: 'rgba(2, 132, 199, 0.2)', tension: 0.35, fill: true, pointRadius: 3 }]
+    datasets: [{
+      label: 'Monthly Orders',
+      data: [],
+      borderColor: 'rgb(2, 132, 199)',
+      backgroundColor: 'rgba(2, 132, 199, 0.2)',
+      tension: 0.35,
+      fill: true,
+      pointRadius: 3
+    }]
   })
 
   const [doughnutData, setDoughnutData] = React.useState({
     labels: ['Confirmed', 'Pending', 'Cancelled'],
-    datasets: [{ data: [], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], borderWidth: 1 }]
+    datasets: [{
+      data: [],
+      backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+      borderWidth: 1
+    }]
   })
 
   const [barData, setBarData] = React.useState({
@@ -179,12 +191,12 @@ const A_Home = () => {
         <div className='flex h-16 items-center justify-center border-b border-sky-600 px-4 font-bold text-lg tracking-wide'>Admin Panel</div>
         <nav className='p-4'>
           <ul className='space-y-2'>
-            <li><Link to="/admin/dashboard" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/dashboard')}`}>Dashboard</Link></li>
-            <li><Link to="/admin/users" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/users')}`}>Users</Link></li>
-            <li><Link to="/admin/events" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/events')}`}>Add Packages</Link></li>
-            <li><Link to="/admin/addemp" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/addemp')}`}>Add Employees</Link></li>
-            <li><Link to="/admin/gallery" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/gallery')}`}>Gallery</Link></li>
-            <li><Link to="/admin/orders" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('/admin/orders')}`}>Orders</Link></li>
+            <li><Link to="dashboard" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('dashboard')}`}>Dashboard</Link></li>
+            <li><Link to="users" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('users')}`}>Users</Link></li>
+            <li><Link to="events" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('events')}`}>Add Packages</Link></li>
+            <li><Link to="addemp" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('addemp')}`}>Add Employees</Link></li>
+            <li><Link to="gallery" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('gallery')}`}>Gallery</Link></li>
+            <li><Link to="orders" className={`block w-full rounded-lg px-4 py-2 text-left font-medium text-white hover:bg-sky-600 transition-colors duration-300 ${isActive('orders')}`}>Orders</Link></li>
             <li className='pt-4'><span onClick={handleLogout} className='block w-full cursor-pointer rounded-lg px-4 py-2 text-left font-medium text-red-400 hover:bg-red-500 hover:text-white transition-colors duration-300'>Logout</span></li>
           </ul>
         </nav>
@@ -198,12 +210,15 @@ const A_Home = () => {
 
         {/* Nested Routes */}
         <Routes>
+          {/* Default Dashboard for /admin */}
+          <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<Users />} />
           <Route path="events" element={<AddPackage />} />
           <Route path="gallery" element={<Gallary />} />
           <Route path="orders" element={<Orders />} />
           <Route path="addemp" element={<AddEmp />} />
+          <Route path="*" element={<Navigate to="dashboard" />} />
         </Routes>
       </main>
     </div>
