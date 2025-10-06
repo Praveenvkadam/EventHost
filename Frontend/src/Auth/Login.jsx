@@ -1,206 +1,148 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { FaUser, FaLock } from "react-icons/fa";
+import Lottie from "lottie-react";
+import Loading from "../assets/Loading circles.json";
+import ErrorAnim from "../assets/404 not found.json";
 
-const AddPackage = () => {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    image1: "",
-    image2: "",
-    image3: "",
-    image4: ""
-  });
-
-  const [services, setServices] = useState([]);
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successAnim, setSuccessAnim] = useState(false);
+  const [errorAnim, setErrorAnim] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const token = localStorage.getItem("token");
-
-  // Fetch all services
-  const fetchServices = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/services", {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      const data = await res.json();
-      setServices(data);
-    } catch (err) {
-      console.error("Error fetching services:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    if (!token) {
-      alert("You must login first");
-      return;
-    }
-
+    setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8080/api/services", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
+      const response = await axios.post("http://localhost:8080/api/auth/login", {
+        email,
+        password,
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to add service");
-      }
+      const data = response.data;
 
-      const newService = await res.json();
-      alert("Service added successfully");
+      // Save user info to localStorage
+      localStorage.setItem("userName", data.username);
+      localStorage.setItem("userId", data.id);
+      localStorage.setItem("token", data.token);
 
-      // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        price: "",
-        image1: "",
-        image2: "",
-        image3: "",
-        image4: ""
-      });
+      setLoading(false);
+      setSuccessAnim(true);
 
-      // Refresh list
-      fetchServices();
+      // Show loading animation for 2 seconds before redirect
+      setTimeout(() => {
+        setSuccessAnim(false);
+        navigate("/"); // redirect after animation
+      }, 2000);
     } catch (err) {
       console.error(err);
-      alert("Failed to add service. Check console.");
-    } finally {
       setLoading(false);
+      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
+      setErrorAnim(true);
+
+      // Show error animation for 2 seconds, then reset
+      setTimeout(() => {
+        setErrorAnim(false);
+        setError("");
+        setEmail("");
+        setPassword("");
+      }, 2000);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8">
-        <h2 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
-          Add New Service
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white shadow-2xl rounded-2xl max-w-md w-full p-8 relative overflow-hidden">
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
+          Welcome Back
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Service Title"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Description"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            placeholder="Price"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="text"
-            name="image1"
-            value={formData.image1}
-            onChange={handleChange}
-            placeholder="Image URL 1"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="text"
-            name="image2"
-            value={formData.image2}
-            onChange={handleChange}
-            placeholder="Image URL 2"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="text"
-            name="image3"
-            value={formData.image3}
-            onChange={handleChange}
-            placeholder="Image URL 3"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="text"
-            name="image4"
-            value={formData.image4}
-            onChange={handleChange}
-            placeholder="Image URL 4"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
+        {/* Success Animation */}
+        {successAnim && (
+          <div className="flex justify-center my-6">
+            <Lottie animationData={Loading} loop={true} className="w-32 h-32" />
+          </div>
+        )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white font-semibold p-3 rounded-lg hover:bg-indigo-700 transition"
-          >
-            {loading ? "Adding..." : "Add Service"}
-          </button>
-        </form>
-
-        <h3 className="text-2xl font-semibold mt-10 mb-6 text-gray-800 text-center">
-          All Services
-        </h3>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.length === 0 && (
-            <p className="text-center col-span-full text-gray-500">
-              No services added yet.
-            </p>
-          )}
-          {services.map((svc) => (
-            <div
-              key={svc.id}
-              className="border border-gray-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition"
-            >
-              <div className="grid grid-cols-2 gap-1">
-                {[svc.image1, svc.image2, svc.image3, svc.image4].map(
-                  (img, idx) =>
-                    img && (
-                      <img
-                        key={idx}
-                        src={img}
-                        alt={`${svc.title} ${idx + 1}`}
-                        className="w-full h-32 object-cover"
-                      />
-                    )
-                )}
-              </div>
-              <div className="p-4">
-                <h4 className="font-bold text-lg text-gray-900">{svc.title}</h4>
-                <p className="text-gray-700 mt-2">{svc.description}</p>
-                <p className="text-indigo-600 font-semibold mt-2">₹{svc.price}</p>
-              </div>
+        {/* Error Animation */}
+        {errorAnim && (
+          <div className="flex flex-col items-center my-6">
+            <Lottie animationData={ErrorAnim} loop={false} className="w-32 h-32" />
+            <div className="bg-red-100 text-red-700 px-4 py-2 rounded mt-2 text-center w-full">
+              {error}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Login Form */}
+        {!successAnim && !errorAnim && (
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Email */}
+            <div className="relative">
+              <FaUser className="absolute top-3 left-3 text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <FaLock className="absolute top-3 left-3 text-gray-400" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-500 transition duration-300"
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        )}
+
+        <p className="mt-4 text-center text-gray-500">
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-indigo-600 font-semibold hover:underline"
+          >
+            Sign Up
+          </Link>
+        </p>
+
+        <p className="mt-2 text-center text-gray-400 text-sm">
+          <Link to="/forget-password" className="hover:underline">
+            Forgot password?
+          </Link>
+        </p>
+
+        {/* Decorative circles */}
+        <div className="absolute -right-16 -top-16 w-40 h-40 bg-purple-300 rounded-full opacity-40 animate-pulse"></div>
+        <div className="absolute -left-16 -bottom-16 w-40 h-40 bg-pink-300 rounded-full opacity-40 animate-pulse"></div>
       </div>
     </div>
   );
 };
 
-export default AddPackage;
+export default Login;

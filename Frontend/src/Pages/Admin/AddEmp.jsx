@@ -9,14 +9,24 @@ export default function AddEmployee3D() {
   const [employees, setEmployees] = useState([]);
   const [editId, setEditId] = useState(null);
 
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+
+  // Axios config with Authorization header
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   // Fetch employees
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get(API_BASE);
+      const res = await axios.get(API_BASE, axiosConfig);
       setEmployees(res.data);
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch employees");
+      alert("Failed to fetch employees. Check your token or server.");
     }
   };
 
@@ -44,16 +54,16 @@ export default function AddEmployee3D() {
 
     try {
       if (editId) {
-        await axios.put(`${API_BASE}/${editId}`, form);
+        await axios.put(`${API_BASE}/${editId}`, form, axiosConfig);
         setEditId(null);
       } else {
-        await axios.post(API_BASE, form);
+        await axios.post(API_BASE, form, axiosConfig);
       }
       setForm({ name: "", email: "", phone: "", assignedEvent: "", status: "Active" });
       fetchEmployees();
     } catch (err) {
       console.error(err);
-      alert("Failed to save employee");
+      alert("Failed to save employee. Check your token or server.");
     }
   };
 
@@ -72,22 +82,22 @@ export default function AddEmployee3D() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this employee?")) return;
     try {
-      await axios.delete(`${API_BASE}/${id}`);
+      await axios.delete(`${API_BASE}/${id}`, axiosConfig);
       fetchEmployees();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete employee");
+      alert("Failed to delete employee. Check your token or server.");
     }
   };
 
   const toggleStatus = async (emp) => {
     const newStatus = emp.status === "Active" ? "Inactive" : "Active";
     try {
-      await axios.patch(`${API_BASE}/${emp.id}/status?status=${newStatus}`);
+      await axios.patch(`${API_BASE}/${emp.id}/status?status=${newStatus}`, {}, axiosConfig);
       fetchEmployees();
     } catch (err) {
       console.error(err);
-      alert("Failed to update status");
+      alert("Failed to update status. Check your token or server.");
     }
   };
 

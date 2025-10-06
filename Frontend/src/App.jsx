@@ -19,7 +19,7 @@ import FeedbackPage from "./Pages/Users/FeedbackPage"
 const App = () => {
   return (
     <div>
-      <div className="pt-16">
+      <div >
         <Routes>
           {/* Public routes */}
           <Route path="/signup" element={<Signup />} />
