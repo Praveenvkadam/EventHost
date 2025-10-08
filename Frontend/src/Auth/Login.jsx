@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import Lottie from "lottie-react";
 import Loading from "../assets/Loading circles.json";
 import ErrorAnim from "../assets/404 not found.json";
@@ -9,6 +9,7 @@ import ErrorAnim from "../assets/404 not found.json";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successAnim, setSuccessAnim] = useState(false);
   const [errorAnim, setErrorAnim] = useState(false);
@@ -101,13 +102,19 @@ const Login = () => {
             <div className="relative">
               <FaLock className="absolute top-3 left-3 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
               />
+              <div
+                className="absolute top-3 right-3 text-gray-400 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </div>
             </div>
 
             {/* Submit */}
@@ -136,10 +143,6 @@ const Login = () => {
             Forgot password?
           </Link>
         </p>
-
-        {/* Decorative circles */}
-        <div className="absolute -right-16 -top-16 w-40 h-40 bg-purple-300 rounded-full opacity-40 animate-pulse"></div>
-        <div className="absolute -left-16 -bottom-16 w-40 h-40 bg-pink-300 rounded-full opacity-40 animate-pulse"></div>
       </div>
     </div>
   );
