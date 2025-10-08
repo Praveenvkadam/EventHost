@@ -38,12 +38,15 @@ public class SecurityConfig {
 
                 // Public endpoints (anyone can GET)
                 .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
                 .requestMatchers(
                         "/api/auth/**",
                         "/api/password/**",
                         "/api/images/**",
                         "/api/bookings/**",
                         "/api/payment/**",
+                        "/api/orders/**",
                         "/api/feedback/**"
                 ).permitAll()
 

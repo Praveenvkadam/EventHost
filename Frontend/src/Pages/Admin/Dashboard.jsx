@@ -41,12 +41,12 @@ const Dashboard = () => {
     }
 
     // Fetch events (mock or backend)
-    axios.get("http://localhost:8080/api/events", axiosConfig)
+    axios.get("http://localhost:8080/api/services", axiosConfig)
       .then(res => setEvents(res.data))
       .catch(err => console.error(err));
 
     // Fetch booking stats (mock or backend)
-    axios.get("http://localhost:8080/api/bookings/stats", axiosConfig)
+    axios.get("http://localhost:8080/api/bookings", axiosConfig)
       .then(res => setBookings(res.data))
       .catch(err => console.error(err));
   }, [token]);

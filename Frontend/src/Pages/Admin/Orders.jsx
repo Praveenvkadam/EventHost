@@ -4,15 +4,23 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/admin/orders")
-      .then((res) => res.json())
-      .then((data) => setOrders(data))
+    // Updated URL to match backend endpoint
+    fetch("http://localhost:8080/api/orders")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Orders fetched:", data);
+        setOrders(data);
+      })
       .catch((err) => console.error("Failed to load orders:", err));
   }, []);
 
   const getStatusClasses = (status) => {
     const normalized = (status || "").toUpperCase();
-
     switch (normalized) {
       case "PAID":
       case "SUCCESS":
@@ -46,11 +54,17 @@ const Orders = () => {
             }}
           />
           <div className="relative">
-            <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">Orders</h1>
-            <p className="mt-1 text-sm text-white/80">Track payment status, IDs and amounts in a sleek table.</p>
+            <h1 className="text-2xl font-extrabold tracking-tight text-white drop-shadow">
+              Orders
+            </h1>
+            <p className="mt-1 text-sm text-white/80">
+              Track payment status, IDs and amounts in a sleek table.
+            </p>
             <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs text-white ring-1 ring-inset ring-white/30 backdrop-blur">
               <span className="font-semibold">Total</span>
-              <span className="rounded-full bg-white/20 px-2 py-0.5">{orders.length}</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5">
+                {orders.length}
+              </span>
             </div>
           </div>
         </div>
@@ -82,8 +96,12 @@ const Orders = () => {
                     <td className="px-4 py-3 text-slate-700">{order.id}</td>
                     <td className="px-4 py-3 text-slate-700">{order.bookingId}</td>
                     <td className="px-4 py-3 text-slate-700">{order.razorpayOrderId}</td>
-                    <td className="px-4 py-3 text-slate-700">{order.razorpayPaymentId || "-"}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">₹{order.amount}</td>
+                    <td className="px-4 py-3 text-slate-700">
+                      {order.razorpayPaymentId || "-"}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      ₹{order.amount}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusClasses(
@@ -94,7 +112,9 @@ const Orders = () => {
                         {order.status || "-"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(order.createdAt)}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {formatDate(order.createdAt)}
+                    </td>
                   </tr>
                 ))
               ) : (

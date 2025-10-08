@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders") // removed /admin to avoid conflict
-@CrossOrigin("*")
+@RequestMapping("/api/orders")
 public class OrderController {
 
     @Autowired
