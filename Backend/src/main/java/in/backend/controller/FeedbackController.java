@@ -7,7 +7,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/feedback")
-@CrossOrigin(origins = "http://localhost:3000") // change to your React port
+@CrossOrigin(origins = "http://localhost:3000") 
 public class FeedbackController {
 
     private final FeedbackService service;

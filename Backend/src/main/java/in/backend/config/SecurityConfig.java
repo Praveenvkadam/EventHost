@@ -29,54 +29,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF since we're using JWT (stateless)
             .csrf(csrf -> csrf.disable())
-
-            // Enable CORS for React frontend
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            // Authorization rules
             .authorizeHttpRequests(auth -> auth
+                // Public GET endpoints
+                .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/employees/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
 
-                // ✅ Employee Management
-                .requestMatchers(HttpMethod.GET, "/api/employees/**").permitAll() 
-                .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN") 
-                .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN") 
-                .requestMatchers(HttpMethod.PATCH, "/api/employees/**").hasRole("ADMIN") 
+                // Admin endpoints
+                .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/employees/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
-
-                // ✅ Public endpoints (login, signup, etc.)
-                .requestMatchers(
-                        "/api/auth/**",
-                        "/api/password/**",
-                        "/api/images/**",
-                        "/api/bookings/**",
-                        "/api/payment/**",
-                        "/api/orders/**",
-                        "/api/feedback/**"
-                ).permitAll()
-
-                // ✅ Admin services
                 .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
 
-                // ✅ Public GETs
-                .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+                // Auth & public endpoints
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/password/**",
+                    "/api/images/**",
+                    "/api/bookings/**",
+                    "/api/payment/**",
+                    "/api/feedback/**"
+                ).permitAll()
 
-                // ✅ Everything else requires authentication
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-
-            // Stateless JWT session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            // Add custom JWT filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
-            // Handle unauthorized access
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");

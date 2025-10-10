@@ -9,5 +9,5 @@ public interface EmployeeService {
     EmployeeDTO getEmployeeById(Long id);
     EmployeeDTO updateEmployee(Long id, EmployeeDTO employeeDTO);
     void deleteEmployee(Long id);
-    EmployeeDTO updateStatus(Long id, String status); // <- Add this for PatchMapping
+    EmployeeDTO updateStatus(Long id, String status); 
 }
