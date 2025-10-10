@@ -3,6 +3,7 @@ package in.backend.controller;
 import in.backend.dto.EmployeeDTO;
 import in.backend.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000") // Your React frontend
+
 public class EmployeeController {
 
     private final EmployeeService employeeService;

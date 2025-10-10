@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -28,18 +29,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // Disable CSRF since we're using JWT (stateless)
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                // Admin endpoints
-                .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
 
-                // Public endpoints (anyone can GET)
-                .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+            // Enable CORS for React frontend
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+            // Authorization rules
+            .authorizeHttpRequests(auth -> auth
+
+                // ✅ Employee Management
+                .requestMatchers(HttpMethod.GET, "/api/employees/**").permitAll() 
+                .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.PATCH, "/api/employees/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
+
+                // ✅ Public endpoints (login, signup, etc.)
                 .requestMatchers(
                         "/api/auth/**",
                         "/api/password/**",
@@ -50,11 +56,27 @@ public class SecurityConfig {
                         "/api/feedback/**"
                 ).permitAll()
 
-                // Any other request requires authentication
+                // ✅ Admin services
+                .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
+
+                // ✅ Public GETs
+                .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
+
+                // ✅ Everything else requires authentication
                 .anyRequest().authenticated()
             )
+
+            // Stateless JWT session
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // Add custom JWT filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+            // Handle unauthorized access
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");
@@ -84,13 +106,14 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    // ✅ Global CORS configuration for React frontend
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://127.0.0.1:5173", "*")); // React dev ports
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

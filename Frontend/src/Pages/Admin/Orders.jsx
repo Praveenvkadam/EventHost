@@ -4,7 +4,7 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    // Updated URL to match backend endpoint
+   
     fetch("http://localhost:8080/api/orders")
       .then((res) => {
         if (!res.ok) {

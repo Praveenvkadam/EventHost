@@ -31,7 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/services",   // GET requests allowed without token
             "/api/bookings",
             "/api/payment",
-            "/api/feedback"
+            "/api/feedback",
+            "/api/orders" ,
+            "/api/employees" // GET requests allowed without token
     );
 
     @Override
