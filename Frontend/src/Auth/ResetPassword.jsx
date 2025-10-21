@@ -14,20 +14,26 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const token = searchParams.get('token');
 
-  // 🔹 Real-time password match validation
   useEffect(() => {
-    const trimmedPassword = password.trim();
-    const trimmedConfirm = confirmPassword.trim();
-    if (trimmedPassword && trimmedConfirm && trimmedPassword !== trimmedConfirm) {
+    if (password && confirmPassword && password !== confirmPassword) {
       setError('Passwords do not match');
     } else {
       setError('');
     }
   }, [password, confirmPassword]);
 
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <p className="text-red-600 text-center text-xl">
+          Invalid or missing token
+        </p>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const trimmedPassword = password.trim();
     const trimmedConfirm = confirmPassword.trim();
 
@@ -35,7 +41,6 @@ const ResetPassword = () => {
       setError('Both fields are required');
       return;
     }
-
     if (trimmedPassword !== trimmedConfirm) {
       setError('Passwords do not match');
       return;
@@ -45,18 +50,18 @@ const ResetPassword = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/password/reset-password', {
+      const response = await fetch('http://localhost:8080/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token,
           newPassword: trimmedPassword,
-          confirmPassword: trimmedConfirm, // ✅ now included
+          confirmPassword: trimmedConfirm,
         }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to reset password');
+      if (!response.ok) throw new Error(data.message || 'Failed to reset password');
 
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
@@ -82,7 +87,6 @@ const ResetPassword = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* New Password */}
             <div>
               <label className="block mb-1 text-sm font-medium">New Password</label>
               <div className="relative">
@@ -103,7 +107,6 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="block mb-1 text-sm font-medium">Confirm Password</label>
               <div className="relative">
@@ -124,7 +127,6 @@ const ResetPassword = () => {
               </div>
             </div>
 
-            {/* Error Message */}
             {error && <p className="text-red-600 text-sm">{error}</p>}
 
             <button

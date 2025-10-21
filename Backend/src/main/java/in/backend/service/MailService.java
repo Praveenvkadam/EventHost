@@ -23,11 +23,12 @@ public class MailService implements MailServiceInterface {
         message.setSubject("Password Reset Request");
         message.setText("Hello,\n\n"
                 + "To reset your password, click the link below:\n"
-                + "http://localhost:5173/reset-password?token=" + token + "\n\n"
+                + "http://localhost:3000/reset-password?token=" + token + "\n\n"
                 + "This link expires in 15 minutes.\n"
                 + "If you did not request this, ignore this email.");
         mailSender.send(message);
     }
+
 
     @Override
     public void sendEventInvite(String toEmail, String empName, String eventName, String acceptUrl, String declineUrl) {

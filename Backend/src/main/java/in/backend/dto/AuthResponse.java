@@ -13,5 +13,5 @@ public class AuthResponse {
     private String username;
     private String email;
     private String phone;
-    private String token; // 🔑 add JWT or session token
+    private String token; 
 }
