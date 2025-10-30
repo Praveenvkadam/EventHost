@@ -18,19 +18,22 @@ const Service = () => {
     try {
       const res = await axios.get('http://localhost:8080/api/services')
       const events = res.data
+
+      // Group data (category not present in backend, so default to "All Services")
       const grouped = events.reduce((acc, ev) => {
-        const cat = ev.category || 'Other'
+        const cat = 'All Services'
         if (!acc[cat]) acc[cat] = []
         acc[cat].push({
           id: ev.id,
-          name: ev.title,
+          name: ev.name, // ✅ FIXED (was ev.title)
           price: ev.price,
-          img: ev.image1, // primary image
+          img: ev.image1,
           images: [ev.image1, ev.image2, ev.image3, ev.image4].filter(Boolean),
-          description: ev.description || ev.details || ev.desc
+          description: ev.description || 'No description available.'
         })
         return acc
       }, {})
+
       setEventsByCategory(grouped)
       setLoading(false)
     } catch (err) {
@@ -72,7 +75,7 @@ const Service = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xl text-indigo-700">
-        Loading events...
+        Loading services...
       </div>
     )
   }
@@ -85,12 +88,12 @@ const Service = () => {
 
       <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-8 sm:mb-10">
-          Explore Events by Category
+          Explore Our Services
         </h2>
 
         {categories.map(cat => (
           <div key={cat} className="mb-12 sm:mb-14 relative">
-            <h3 className="text-xl sm:text-2xl font-semibold text-indigo-700 mb-4 sm:mb-5">{cat} Events</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold text-indigo-700 mb-4 sm:mb-5">{cat}</h3>
 
             {/* Arrows */}
             <button
@@ -121,9 +124,13 @@ const Service = () => {
                       ))}
                     </Slider>
                     <div className="p-3 sm:p-4">
-                      <h4 className="font-serif text-base sm:text-lg font-bold text-slate-900">{ev.name}</h4>
+                      <h4 className="font-serif text-base sm:text-lg font-bold text-slate-900">
+                        {ev.name}
+                      </h4>
                       <p className="text-indigo-600 font-medium mt-1">₹{ev.price}</p>
-                      <p className="mt-2 text-sm text-slate-600 leading-6 line-clamp-6">{ev.description}</p>
+                      <p className="mt-2 text-sm text-slate-600 leading-6 line-clamp-6">
+                        {ev.description}
+                      </p>
                       <button
                         className="mt-2 sm:mt-3 w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition text-sm sm:text-base"
                         onClick={() => handleBook(ev)}

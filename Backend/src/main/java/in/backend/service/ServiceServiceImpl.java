@@ -40,7 +40,7 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public ServicesResponse updateService(Long id, ServicesResponse dto) {
         return serviceRepository.findById(id).map(existing -> {
-            existing.setName(dto.getTitle());
+            existing.setName(dto.getName());
             existing.setDescription(dto.getDescription());
             existing.setPrice(dto.getPrice());
             existing.setImage1(dto.getImage1());
@@ -60,7 +60,7 @@ public class ServiceServiceImpl implements ServiceService {
     private ServicesResponse mapToDto(Services s) {
         ServicesResponse dto = new ServicesResponse();
         dto.setId(s.getId());
-        dto.setTitle(s.getName());
+        dto.setName(s.getName());
         dto.setDescription(s.getDescription());
         dto.setPrice(s.getPrice());
         dto.setImage1(s.getImage1());
@@ -74,7 +74,7 @@ public class ServiceServiceImpl implements ServiceService {
 
     private Services mapToEntity(ServicesResponse dto) {
         Services s = new Services();
-        s.setName(dto.getTitle());
+        s.setName(dto.getName());
         s.setDescription(dto.getDescription());
         s.setPrice(dto.getPrice());
         s.setImage1(dto.getImage1());

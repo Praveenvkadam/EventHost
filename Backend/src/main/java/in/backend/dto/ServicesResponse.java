@@ -14,7 +14,7 @@ import java.util.List;
 public class ServicesResponse {
 
     private Long id;
-    private String title;
+    private String name;
     private String description;
     private Double price;
 

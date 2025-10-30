@@ -14,7 +14,7 @@ public class Services {
     private Long id;
 
     @Column(nullable = false)
-    private String name;  // Service title
+    private String name;  
 
     @Column(length = 2000)
     private String description;

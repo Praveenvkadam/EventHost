@@ -15,13 +15,15 @@ const AddService = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  // Fetch all services
+  const API_URL = "http://localhost:8080/api/services";
+
+  // Fetch all services (public endpoint)
   const fetchServices = async () => {
-    setLoading(true);
-    setError("");
     try {
-      const res = await axios.get("http://localhost:8080/api/services");
+      setLoading(true);
+      const res = await axios.get(API_URL);
       setServices(res.data);
     } catch (err) {
       console.error("Error fetching services:", err);
@@ -35,24 +37,41 @@ const AddService = () => {
     fetchServices();
   }, []);
 
+  // Handle input change
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Get authorization config
+  const getAuthConfig = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Unauthorized. Please log in as admin first.");
+      throw new Error("No token found");
+    }
+    return {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
+
+  // Handle form submit (admin only)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!formData.name || !formData.description || !formData.price) {
       setError("Name, description, and price are required.");
       return;
     }
 
-    try {
-      const payload = { ...formData, price: Number(formData.price) };
-      await axios.post("http://localhost:8080/api/services", payload);
-      alert("Service added successfully");
+    const payload = { ...formData, price: Number(formData.price) };
 
+    try {
+      const res = await axios.post(API_URL, payload, getAuthConfig());
+      setSuccess("✅ Service added successfully!");
       setFormData({
         name: "",
         description: "",
@@ -62,22 +81,32 @@ const AddService = () => {
         image3: "",
         image4: ""
       });
-
       fetchServices();
     } catch (err) {
-      console.error("Error adding service:", err);
-      setError("Failed to add service.");
+      console.error("Error adding service:", err.response || err);
+      if (err.response?.status === 403) {
+        setError("You are not authorized to add services (Admin only).");
+      } else {
+        setError("Failed to add service.");
+      }
     }
   };
 
+  // Handle delete (admin only)
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this service?")) return;
+
     try {
-      await axios.delete(`http://localhost:8080/api/services/${id}`);
+      await axios.delete(`${API_URL}/${id}`, getAuthConfig());
+      setSuccess("✅ Service deleted successfully!");
       fetchServices();
     } catch (err) {
-      console.error("Error deleting service:", err);
-      setError("Failed to delete service.");
+      console.error("Error deleting service:", err.response || err);
+      if (err.response?.status === 403) {
+        setError("You are not authorized to delete services (Admin only).");
+      } else {
+        setError("Failed to delete service.");
+      }
     }
   };
 
@@ -94,14 +123,14 @@ const AddService = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Service Name"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-400"
           />
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             placeholder="Description"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-400"
           />
           <input
             type="number"
@@ -109,7 +138,7 @@ const AddService = () => {
             value={formData.price}
             onChange={handleChange}
             placeholder="Price"
-            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-400"
           />
           {[1, 2, 3, 4].map((num) => (
             <input
@@ -119,7 +148,7 @@ const AddService = () => {
               value={formData[`image${num}`]}
               onChange={handleChange}
               placeholder={`Image URL ${num}`}
-              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+              className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-400"
             />
           ))}
           <button
@@ -128,10 +157,12 @@ const AddService = () => {
           >
             Add Service
           </button>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
+
+          {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
+          {success && <p className="text-green-600 mt-2 text-center">{success}</p>}
         </form>
 
-        {/* List of Services */}
+        {/* List */}
         <h3 className="text-2xl font-semibold mt-10 mb-6 text-gray-800 text-center">All Services</h3>
         {loading ? (
           <p className="text-center text-gray-500">Loading services...</p>
