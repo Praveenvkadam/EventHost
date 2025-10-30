@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/services")
+// Map both /api/services and /api/packages to the same controller
+@RequestMapping({"/api/services", "/api/packages"})
 @CrossOrigin(origins = "http://localhost:3000")
 public class ServiceController {
 

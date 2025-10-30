@@ -32,23 +32,30 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                // Public GET endpoints
+                // ===== PUBLIC GET ENDPOINTS =====
                 .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/employees/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/packages/**").permitAll() 
                 .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/booking/**").permitAll()
 
-                // Admin endpoints
+                // ===== ADMIN ENDPOINTS =====
                 .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/employees/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
+
                 .requestMatchers(HttpMethod.POST, "/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
 
-                // Auth & public endpoints
+                //  Add identical access rules for /api/packages/**
+                .requestMatchers(HttpMethod.POST, "/api/packages/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/packages/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/packages/**").hasRole("ADMIN")
+
+                // ===== PUBLIC AUTH ENDPOINTS =====
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/password/**",
@@ -58,7 +65,7 @@ public class SecurityConfig {
                     "/api/feedback/**"
                 ).permitAll()
 
-                // Everything else requires authentication
+                // ===== ANYTHING ELSE REQUIRES LOGIN =====
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -92,12 +99,12 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // ✅ Global CORS configuration for React frontend
+    //  Global CORS configuration for React frontend
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://127.0.0.1:5173", "*")); // React dev ports
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://127.0.0.1:5173", "*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
 
