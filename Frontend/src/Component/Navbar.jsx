@@ -52,7 +52,7 @@ const Navbar = () => {
             to="/"
             className="text-3xl font-bold hover:text-yellow-300 transition-colors"
           >
-            MyApp
+          EventFlux
           </Link>
 
           {/* Desktop Menu */}
